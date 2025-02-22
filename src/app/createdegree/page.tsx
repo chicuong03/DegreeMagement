@@ -6,9 +6,6 @@ import { useEffect, useState } from "react";
 import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import { toast } from "react-toastify";
 
-
-
-
 type Certificate = {
     id: number;
     studentName: string;
@@ -29,16 +26,6 @@ declare global {
 }
 
 export default function GrantCertificate() {
-    // const [formData, setFormData] = useState({
-    //     studentName: "",
-    //     university: "",
-    //     dateOfBirth: "",
-    //     graduationDate: "",
-    //     score: "",
-    //     grade: "",
-    //     ipfsHash: "/images/dnc.png",
-    // });
-
 
     // sd cho pinata 
     const [formData, setFormData] = useState({
@@ -49,7 +36,6 @@ export default function GrantCertificate() {
         score: "",
         grade: "",
     });
-
 
     const [certificates, setCertificates] = useState<Certificate[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -93,7 +79,6 @@ export default function GrantCertificate() {
         }
     }, [formData.score]);
 
-    // Lấy danh sách bằng cấp từ Blockchain
     // const fetchCertificates = async () => {
     //     if (!window.ethereum) return;
     //     setIsLoading(true);
@@ -186,7 +171,6 @@ export default function GrantCertificate() {
         fetchCertificates();
     }, []);
 
-    // Cấp bằng NFT trên Blockchain sài
     // const handleGrantCertificate = async () => {
     //     if (!window.ethereum) {
     //         toast.error("Hãy kết nối MetaMask!");
