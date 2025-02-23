@@ -166,13 +166,14 @@ const DegreeHistoryPage = () => {
         const doc = new jsPDF();
         doc.text("Degree History", 14, 10);
         doc.setFont("Arial");
-        const tableColumn = ["Degree Id", "Student Name", "University", "Date Of Issue", "Score", "Holder"];
+        const tableColumn = ["Degree Id", "Student Name", "University", "Date Of Issue", "Score", "Birth of Date"];
         const tableRows = degreeHistory.map(history => [
             history.degreeId,
             history.studentName,
             history.university,
             history.timestamp,
             history.score,
+            history.dateOfBirth,
         ]);
 
         autoTable(doc, {
