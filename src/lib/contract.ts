@@ -1,8 +1,8 @@
-
-import { Contract, ethers } from 'ethers';
+//src/lib/contract.ts
+import { ethers } from 'ethers';
 
 // Địa chỉ hợp đồng đã triển khai
-export const contractAddress = '0x73ED44E52D0CCC06Fa15284db8da1f08527D1E1E'; // địa chỉ hợp đồng
+export const contractAddress = '0x9227241afb4F160d2d6460dACB0151b60e25e55A'; // địa chỉ hợp đồng
 
 // ABI của smart contract
 export const contractABI = [
@@ -228,15 +228,15 @@ export const contractABI = [
                 "type": "uint256"
             },
             {
-                "indexed": false,
-                "internalType": "string",
-                "name": "studentName",
-                "type": "string"
+                "indexed": true,
+                "internalType": "address",
+                "name": "student",
+                "type": "address"
             },
             {
                 "indexed": false,
                 "internalType": "string",
-                "name": "university",
+                "name": "ipfsHash",
                 "type": "string"
             }
         ],
@@ -254,6 +254,25 @@ export const contractABI = [
             }
         ],
         "name": "DegreeRejected",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "degreeId",
+                "type": "uint256"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "DegreeTransferred",
         "type": "event"
     },
     {
@@ -369,6 +388,11 @@ export const contractABI = [
                 "internalType": "uint256",
                 "name": "degreeId",
                 "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "student",
+                "type": "address"
             }
         ],
         "name": "approveDegree",
@@ -438,36 +462,6 @@ export const contractABI = [
         "outputs": [
             {
                 "internalType": "string",
-                "name": "studentName",
-                "type": "string"
-            },
-            {
-                "internalType": "string",
-                "name": "university",
-                "type": "string"
-            },
-            {
-                "internalType": "uint256",
-                "name": "dateOfBirth",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "graduationDate",
-                "type": "uint256"
-            },
-            {
-                "internalType": "string",
-                "name": "grade",
-                "type": "string"
-            },
-            {
-                "internalType": "uint256",
-                "name": "score",
-                "type": "uint256"
-            },
-            {
-                "internalType": "string",
                 "name": "ipfsHash",
                 "type": "string"
             },
@@ -520,61 +514,24 @@ export const contractABI = [
         "name": "getDegree",
         "outputs": [
             {
-                "components": [
-                    {
-                        "internalType": "string",
-                        "name": "studentName",
-                        "type": "string"
-                    },
-                    {
-                        "internalType": "string",
-                        "name": "university",
-                        "type": "string"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "dateOfBirth",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "graduationDate",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "string",
-                        "name": "grade",
-                        "type": "string"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "score",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "string",
-                        "name": "ipfsHash",
-                        "type": "string"
-                    },
-                    {
-                        "internalType": "enum DegreeNFT.DegreeStatus",
-                        "name": "status",
-                        "type": "uint8"
-                    },
-                    {
-                        "internalType": "address",
-                        "name": "issuer",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "timestamp",
-                        "type": "uint256"
-                    }
-                ],
-                "internalType": "struct DegreeNFT.Degree",
+                "internalType": "string",
                 "name": "",
-                "type": "tuple"
+                "type": "string"
+            },
+            {
+                "internalType": "enum DegreeNFT.DegreeStatus",
+                "name": "",
+                "type": "uint8"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",
@@ -583,17 +540,17 @@ export const contractABI = [
     {
         "inputs": [
             {
-                "internalType": "uint256",
-                "name": "degreeId",
-                "type": "uint256"
+                "internalType": "address",
+                "name": "student",
+                "type": "address"
             }
         ],
-        "name": "getDegreeStatus",
+        "name": "getDegreesByOwner",
         "outputs": [
             {
-                "internalType": "enum DegreeNFT.DegreeStatus",
+                "internalType": "uint256[]",
                 "name": "",
-                "type": "uint8"
+                "type": "uint256[]"
             }
         ],
         "stateMutability": "view",
@@ -627,38 +584,13 @@ export const contractABI = [
         "inputs": [
             {
                 "internalType": "string",
-                "name": "studentName",
-                "type": "string"
-            },
-            {
-                "internalType": "string",
-                "name": "university",
-                "type": "string"
-            },
-            {
-                "internalType": "uint256",
-                "name": "dateOfBirth",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "graduationDate",
-                "type": "uint256"
-            },
-            {
-                "internalType": "string",
-                "name": "grade",
-                "type": "string"
-            },
-            {
-                "internalType": "uint256",
-                "name": "score",
-                "type": "uint256"
-            },
-            {
-                "internalType": "string",
                 "name": "ipfsHash",
                 "type": "string"
+            },
+            {
+                "internalType": "address",
+                "name": "student",
+                "type": "address"
             }
         ],
         "name": "issueDegree",
@@ -945,8 +877,12 @@ export const contractABI = [
 ];
 
 // Hàm để kết nối và trả về đối tượng hợp đồng
-export const getContract = (provider: ethers.providers.Web3Provider): Contract => {
-    const signer = provider.getSigner(); // Lấy signer từ MetaMask
-    return new Contract(contractAddress, contractABI, signer);
-};
+// export const getContract = (provider: ethers.providers.Web3Provider): Contract => {
+//     const signer = provider.getSigner(); // Lấy signer từ MetaMask
+//     return new Contract(contractAddress, contractABI, signer);
+// };
 
+export function getContract(providerOrSigner: ethers.providers.Provider | ethers.Signer) {
+    const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
+    return new ethers.Contract(contractAddress, contractABI, providerOrSigner);
+}

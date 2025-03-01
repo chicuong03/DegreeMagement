@@ -3,96 +3,44 @@
 import { getContract } from "@/lib/contract";
 import { ethers } from "ethers";
 import { useState } from "react";
-import QRCode from "react-qr-code";
+
+// 🛠 **Lấy dữ liệu từ IPFS**
+const fetchIPFS = async (ipfsHash: string) => {
+    try {
+        if (!ipfsHash || !ipfsHash.startsWith("ipfs://")) {
+            console.error("❌ Không có IPFS Hash hợp lệ:", ipfsHash);
+            return {};
+        }
+
+        // ✅ **Chuyển đổi `ipfs://` thành URL Pinata**
+        const url = `https://copper-dear-raccoon-181.mypinata.cloud/ipfs/${ipfsHash.replace("ipfs://", "")}`;
+        console.log(`🔍 Fetching from IPFS: ${url}`);
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            console.error(`❌ Lỗi tải từ IPFS (${response.status}):`, response.statusText);
+            return {};
+        }
+
+        const data = await response.json();
+        console.log("✅ Dữ liệu từ IPFS:", data);
+        return data;
+    } catch (error) {
+        console.error("❌ Lỗi khi fetch từ IPFS:", error);
+        return {};
+    }
+};
 
 export default function VerifyCertificate() {
-    const [certificateID, setCertificateID] = useState("");
+    const [searchInput, setSearchInput] = useState(""); // Giá trị nhập vào
     const [result, setResult] = useState<{ valid: boolean; data?: any } | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [searchType, setSearchType] = useState<"id" | "address">("id"); // Chọn kiểu tìm kiếm
-    const [searchInput, setSearchInput] = useState(""); // Giá trị nhập vào
 
-    const handleVerify = async () => {
-        if (!certificateID.trim()) {
-            setError("Vui lòng nhập mã bằng cấp!");
-            return;
-        }
-
-        setLoading(true);
-        setResult(null);
-        setError("");
-
-        try {
-            // Kết nối với MetaMask
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const contract = getContract(provider);
-
-            // 🛠 Chuyển đổi certificateID sang số
-            const certID = parseInt(certificateID, 10);
-            if (isNaN(certID) || certID <= 0) {
-                throw new Error("Mã bằng cấp không hợp lệ!");
-            }
-
-            // 📌 Kiểm tra tổng số bằng cấp trên blockchain
-            const totalDegrees = await contract.totalDegrees();
-            if (certID > totalDegrees.toNumber()) {
-                throw new Error("Không tìm thấy bằng cấp!");
-            }
-
-            // 🛠 Gọi smart contract để lấy thông tin bằng cấp
-            const degree = await contract.getDegree(certID);
-
-            if (!degree || degree.issuer === ethers.constants.AddressZero) {
-                throw new Error("Không tìm thấy bằng cấp");
-            }
-
-            // 🛠 Kiểm tra **chủ sở hữu hiện tại của NFT**
-            const currentOwner = await contract.ownerOf(certID);
-            console.log(`🎯 Chủ sở hữu hiện tại của NFT ${certID}: ${currentOwner}`);
-
-            // 🛠 Xử lý trạng thái bằng cấp
-            const status =
-                degree.status === 0 ? "Chưa duyệt" :
-                    degree.status === 1 ? "Hợp lệ" : "Từ chối";
-
-            // 🛠 Cập nhật kết quả
-            setResult({
-                valid: true,
-                data: {
-                    certificateID: certID,
-                    owner: currentOwner, // Cập nhật chủ sở hữu hiện tại
-                    university_name: degree.university,
-                    dateOfBirth: new Date(Number(degree.dateOfBirth) * 1000).toLocaleDateString(),
-                    issueDate: new Date(Number(degree.timestamp) * 1000).toLocaleDateString(),
-                    status: status,
-                    grade: degree.grade,
-                    score: Number(degree.score),
-                    ipfsHash: degree.ipfsHash,
-                },
-            });
-        } catch (err) {
-            setResult({ valid: false });
-            setError("Không tìm thấy bằng cấp. Vui lòng kiểm tra lại mã.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Xác định kiểu tìm kiếm (ID hay địa chỉ ví)
-    const detectSearchType = (input: string) => {
-        if (/^\d+$/.test(input)) {
-            return "id"; // Nếu chỉ chứa số -> tìm theo ID
-        } else if (/^0x[a-fA-F0-9]{40}$/.test(input)) {
-            return "address"; // Nếu bắt đầu bằng "0x" và có 40 ký tự -> tìm theo địa chỉ ví
-        }
-        return null; // Không hợp lệ
-    };
-
-    // 🔹 Xử lý tìm kiếm tự động
+    // 🔍 **Xử lý tìm kiếm**
     const handleSearch = async () => {
         if (!searchInput.trim()) {
-            setError("Vui lòng nhập mã bằng cấp hoặc địa chỉ ví!");
+            setError("⚠️ Vui lòng nhập mã bằng cấp hoặc địa chỉ ví!");
             return;
         }
 
@@ -101,115 +49,164 @@ export default function VerifyCertificate() {
         setError("");
 
         try {
-            const searchType = detectSearchType(searchInput);
+            const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL);
+            const contract = getContract(provider);
 
-            if (searchType === "id") {
-                await handleVerifyByID(searchInput);
-            } else if (searchType === "address") {
-                await handleVerifyByAddress(searchInput);
+            if (/^\d+$/.test(searchInput)) {
+                await searchByID(contract, parseInt(searchInput, 10));
+            } else if (/^0x[a-fA-F0-9]{40}$/.test(searchInput)) {
+                await searchByAddress(contract, searchInput);
             } else {
-                throw new Error("Định dạng nhập vào không hợp lệ!");
+                throw new Error("⚠️ Định dạng nhập không hợp lệ! Hãy nhập ID hoặc địa chỉ ví.");
             }
         } catch (err) {
             setResult({ valid: false });
-            setError("Không tìm thấy thông tin. Vui lòng kiểm tra lại!");
+            setError("❌ Không tìm thấy thông tin. Vui lòng kiểm tra lại!");
         } finally {
             setLoading(false);
         }
     };
 
-    // 🔹 Tìm kiếm bằng ID NFT
-    const handleVerifyByID = async (certificateID: string) => {
-        try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const contract = getContract(provider);
+    // 🔹 **Tìm kiếm bằng mã NFT**
+    const searchByID = async (contract: any, certID: number) => {
+        if (isNaN(certID) || certID <= 0) {
+            throw new Error("⚠️ Mã bằng cấp không hợp lệ!");
+        }
 
-            const certID = parseInt(certificateID, 10);
-            if (isNaN(certID) || certID <= 0) {
-                throw new Error("Mã bằng cấp không hợp lệ!");
-            }
+        const totalDegrees = await contract.totalDegrees();
+        if (certID > totalDegrees.toNumber()) {
+            throw new Error("⚠️ Không tìm thấy bằng cấp!");
+        }
 
-            const totalDegrees = await contract.totalDegrees();
-            if (certID > totalDegrees.toNumber()) {
-                throw new Error("Không tìm thấy bằng cấp!");
-            }
+        // 🔹 **Lấy dữ liệu từ blockchain**
+        const degree = await contract.getDegree(certID);
+        console.log("📢 Dữ liệu từ blockchain:", degree);
 
-            const degree = await contract.getDegree(certID);
-            if (!degree || degree.issuer === ethers.constants.AddressZero) {
-                throw new Error("Không tìm thấy bằng cấp");
-            }
+        // ✅ **Truy cập đúng vị trí của ipfsHash, issuer, timestamp**
+        const ipfsHash = degree[0];
+        const issuer = degree[2]; // 🔹 Địa chỉ ví của người cấp bằng
+        const timestamp = degree[3]; // 🔹 Thời gian cấp bằng
 
-            const currentOwner = await contract.ownerOf(certID);
+        if (!ipfsHash || !ipfsHash.startsWith("ipfs://")) {
+            console.error("❌ Không có IPFS Hash hợp lệ:", ipfsHash);
+            setResult({ valid: false });
+            return;
+        }
 
-            setResult({
-                valid: true,
-                data: {
-                    certificateID: certID,
-                    owner: currentOwner,
-                    name: degree.studentName,
-                    university_name: degree.university,
-                    dateOfBirth: new Date(Number(degree.dateOfBirth) * 1000).toLocaleDateString(),
-                    issueDate: new Date(Number(degree.timestamp) * 1000).toLocaleDateString(),
-                    status: degree.status === 0 ? "Chưa duyệt" : degree.status === 1 ? "Hợp lệ" : "Từ chối",
-                    grade: degree.grade,
-                    score: Number(degree.score),
-                    ipfsHash: degree.ipfsHash,
+        // 🔹 **Lấy chủ sở hữu NFT từ blockchain**
+        const owner = await contract.ownerOf(certID);
+        console.log("📢 Chủ sở hữu NFT:", owner);
+        console.log("📢 Người cấp bằng (issuer):", issuer);
+
+        // 🛠 **Fetch dữ liệu từ IPFS**
+        const ipfsData = await fetchIPFS(ipfsHash);
+        console.log("📢 Dữ liệu từ IPFS:", ipfsData);
+
+        // 🔹 **Lấy dữ liệu từ `attributes` nếu có**
+        const attributes = ipfsData.attributes || [];
+        const getAttributeValue = (trait: string) => {
+            const attr = attributes.find((a: any) => a.trait_type === trait);
+            return attr ? attr.value : "N/A";
+        };
+
+        setResult({
+            valid: true,
+            data: {
+                certificateID: certID,
+                owner, // 🟢 Chủ sở hữu NFT
+                issuer, // 🟢 Địa chỉ ví của người cấp bằng
+                studentName: ipfsData.studentName || getAttributeValue("Tên Sinh Viên"),
+                university: ipfsData.university || getAttributeValue("Trường Đại Học"),
+                major: ipfsData.major || getAttributeValue("Chuyên Ngành"),
+                dateOfBirth: ipfsData.dateOfBirth
+                    ? new Date(ipfsData.dateOfBirth).toLocaleDateString()
+                    : getAttributeValue("Ngày Sinh"),
+                issueDate: timestamp
+                    ? new Date(Number(timestamp) * 1000).toLocaleDateString()
+                    : "N/A",
+
+                status: {
+                    label: degree[1] === 0 ? "Chờ duyệt" : degree[1] === 1 ? "Hợp lệ" : "Từ chối",
+                    textColor: degree[1] === 0 ? "#856404" : degree[1] === 1 ? "#155724" : "#721c24",
+                    bgColor: degree[1] === 0 ? "#fff3cd" : degree[1] === 1 ? "#d4edda" : "#f8d7da",
+                    borderColor: degree[1] === 0 ? "#ffeeba" : degree[1] === 1 ? "#c3e6cb" : "#f5c6cb"
                 },
-            });
-        } catch (err) {
-            setResult({ valid: false });
-            setError("Không tìm thấy bằng cấp.");
-        }
+
+                grade: ipfsData.grade || getAttributeValue("Xếp Loại"),
+                score: ipfsData.score || getAttributeValue("Điểm"),
+                ipfsHash: ipfsHash,
+            },
+        });
     };
 
-    // 🔹 Tìm kiếm bằng Địa chỉ Ví
-    const handleVerifyByAddress = async (walletAddress: string) => {
-        try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const contract = getContract(provider);
+    const searchByAddress = async (contract: any, walletAddress: string) => {
+        console.log("🔍 Đang tìm bằng cấp của địa chỉ:", walletAddress);
 
-            const totalDegrees = await contract.totalDegrees();
-            let userCertificates = [];
+        const degreesList = await contract.getDegreesByOwner(walletAddress);
+        console.log("📢 Danh sách ID bằng cấp:", degreesList);
 
-            for (let i = 1; i <= totalDegrees.toNumber(); i++) {
-                const owner = await contract.ownerOf(i);
-                if (owner.toLowerCase() === walletAddress.toLowerCase()) {
-                    const degree = await contract.getDegree(i);
-                    userCertificates.push({
-                        certificateID: i,
-                        owner: owner,
-                        name: degree.studentName,
-                        university_name: degree.university,
-                        dateOfBirth: new Date(Number(degree.dateOfBirth) * 1000).toLocaleDateString(),
-                        issueDate: new Date(Number(degree.timestamp) * 1000).toLocaleDateString(),
-                        status: degree.status === 0 ? "Chưa duyệt" : degree.status === 1 ? "Hợp lệ" : "Từ chối",
-                        grade: degree.grade,
-                        score: Number(degree.score),
-                        ipfsHash: degree.ipfsHash,
-                    });
-                }
-            }
-
-            if (userCertificates.length === 0) {
-                throw new Error("Không tìm thấy bằng cấp cho địa chỉ này.");
-            }
-
-            setResult({
-                valid: true,
-                data: userCertificates,
-            });
-        } catch (err) {
-            setResult({ valid: false });
-            setError("Không tìm thấy bằng cấp cho địa chỉ này.");
+        if (degreesList.length === 0) {
+            throw new Error("❌ Không tìm thấy bằng cấp cho địa chỉ này.");
         }
+
+        let userCertificates = [];
+
+        for (let i = 0; i < degreesList.length; i++) {
+            const degreeId = degreesList[i].toNumber();
+            console.log(`🔍 Đang lấy dữ liệu cho bằng cấp ID: ${degreeId}`);
+
+            const degree = await contract.getDegree(degreeId);
+            console.log("📢 Dữ liệu từ blockchain:", degree);
+
+            // ✅ Lấy dữ liệu từ blockchain
+            const ipfsHash = degree[0];
+            const issuer = degree[2];
+            const timestamp = degree[3];
+
+            if (!ipfsHash || !ipfsHash.startsWith("ipfs://")) {
+                console.warn(`⚠️ Bằng cấp ID ${degreeId} không có IPFS Hash.`);
+                continue;
+            }
+
+            // 🛠 **Lấy dữ liệu từ IPFS**
+            const ipfsData = await fetchIPFS(ipfsHash);
+            console.log("📢 Dữ liệu từ IPFS:", ipfsData);
+
+            userCertificates.push({
+                certificateID: degreeId,
+                owner: walletAddress,
+                issuer,
+                studentName: ipfsData.studentName || "N/A",
+                university: ipfsData.university || "N/A",
+                major: ipfsData.major || "N/A",
+                dateOfBirth: ipfsData.dateOfBirth ? new Date(ipfsData.dateOfBirth).toLocaleDateString() : "N/A",
+                issueDate: timestamp ? new Date(Number(timestamp) * 1000).toLocaleDateString() : "N/A",
+                status: {
+                    label: degree[1] === 0 ? "Chờ duyệt" : degree[1] === 1 ? "Hợp lệ" : "Từ chối",
+                    textColor: degree[1] === 0 ? "#856404" : degree[1] === 1 ? "#155724" : "#721c24",
+                    bgColor: degree[1] === 0 ? "#fff3cd" : degree[1] === 1 ? "#d4edda" : "#f8d7da",
+                    borderColor: degree[1] === 0 ? "#ffeeba" : degree[1] === 1 ? "#c3e6cb" : "#f5c6cb"
+                },
+
+                grade: ipfsData.grade || "N/A",
+                score: ipfsData.score || "N/A",
+                ipfsHash: ipfsHash,
+            });
+        }
+
+        if (userCertificates.length === 0) {
+            throw new Error("❌ Không tìm thấy bằng cấp cho địa chỉ này.");
+        }
+
+        setResult({ valid: true, data: userCertificates });
     };
+
 
     return (
         <div style={styles.container}>
             <h1 style={styles.title}>Tra cứu bằng cấp</h1>
-            <p style={styles.subtitle}>Nhập mã bằng cấp của bạn để xác minh thông tin.</p>
+            <p style={styles.subtitle}>Nhập mã bằng cấp hoặc địa chỉ ví để xác minh.</p>
 
-            {/* Form nhập thông tin */}
             <div style={styles.form}>
                 <input
                     type="text"
@@ -218,7 +215,6 @@ export default function VerifyCertificate() {
                     onChange={(e) => setSearchInput(e.target.value)}
                     style={styles.input}
                 />
-
                 <button
                     onClick={handleSearch}
                     style={styles.button}
@@ -228,195 +224,130 @@ export default function VerifyCertificate() {
                 </button>
             </div>
 
-            {error && (
-                <div style={{ ...styles.error, marginTop: "20px", textAlign: "center" }}>
-                    {error}
-                </div>
-            )}
+            {error && <div style={styles.error}>{error}</div>}
 
-            {result && (
-                <div style={styles.result}>
-                    {result.valid ? (
-                        <div style={styles.success}>
-                            <h2>Bằng cấp hợp lệ!</h2>
+            {result && result.valid && result.data && (
+                <div style={styles.success}>
+                    <h2>Thông Tin Bằng Cấp!</h2>
 
-                            {Array.isArray(result.data) ? (
-                                // Nếu là tìm theo Địa chỉ ví (Nhiều bằng cấp)
-                                <div style={styles.certificatesGrid}>
-                                    {result.data.map((cert, index) => (
-                                        <div key={index} style={styles.certCard}>
-                                            <p><strong>Mã bằng cấp:</strong> {cert.certificateID}</p>
-                                            <p><strong>Người nhận (Chủ sở hữu NFT):</strong> {cert.owner}</p>
-                                            <p><strong>Tên người nhận:</strong> {cert.name}</p>
-                                            <p><strong>Được cấp bởi:</strong> {cert.university_name}</p>
-                                            <p><strong>Ngày cấp:</strong> {cert.issueDate}</p>
-                                            <p><strong>Xếp loại:</strong> {cert.grade}</p>
-                                            <p><strong>Điểm:</strong> {cert.score}</p>
-                                            <p>
-                                                <strong>NFT chủ sở hữu:</strong>{" "}
-                                                <a
-                                                    href={`https://testnet.coinex.net/token/0x73ED44E52D0CCC06Fa15284db8da1f08527D1E1E?a=${cert.certificateID}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    Xem trên CoinEx Smart Chain
-                                                </a>
-                                            </p>
-
-                                            {/* 🔹 Mỗi bằng cấp có một QR Code riêng */}
-                                            <div style={styles.qrWrapper}>
-                                                <QRCode
-                                                    value={`https://testnet.coinex.net/token/0x73ED44E52D0CCC06Fa15284db8da1f08527D1E1E?a=${cert.certificateID}`}
-                                                    size={200}
-                                                    bgColor="transparent"
-                                                />
-                                            </div>
-
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                // Nếu là tìm theo ID (Chỉ có 1 bằng cấp)
-                                <div style={styles.certSingle}>
-                                    <p><strong>Mã bằng cấp:</strong> {result.data.certificateID}</p>
-                                    <p><strong>Người nhận (Chủ sở hữu NFT):</strong> {result.data.owner}</p>
-                                    <p><strong>Tên người nhận:</strong> {result.data.name}</p>
-                                    <p><strong>Được cấp bởi:</strong> {result.data.university_name}</p>
-                                    <p><strong>Ngày cấp:</strong> {result.data.issueDate}</p>
-                                    <p><strong>Xếp loại:</strong> {result.data.grade}</p>
-                                    <p><strong>Điểm:</strong> {result.data.score}</p>
-
-                                    {/* Thêm link tới Explorer */}
+                    {Array.isArray(result.data) ? (
+                        // 🔹 Nếu tìm theo Địa chỉ Ví (có nhiều bằng cấp)
+                        <div style={styles.certificatesGrid}>
+                            {result.data.map((cert, index) => (
+                                <div
+                                    key={index}
+                                    style={{
+                                        ...styles.certCard,
+                                        backgroundColor: cert.status.bgColor,
+                                        borderColor: cert.status.borderColor
+                                    }}
+                                >
+                                    <p>
+                                        <strong>TRẠNG THÁI:</strong>{" "}
+                                        <span style={{ color: cert.status.textColor, fontWeight: "bold" }}>
+                                            {cert.status.label}
+                                        </span>
+                                    </p>
+                                    <p><strong>Mã bằng cấp:</strong> {cert.certificateID}</p>
+                                    <p><strong>Người nhận:</strong> {cert.studentName}</p>
+                                    <p><strong>Chủ sở hữu NFT:</strong> {cert.owner}</p>
+                                    <p><strong>Trường:</strong> {cert.university}</p>
+                                    <p><strong>Ngành:</strong> {cert.major}</p>
+                                    <p><strong>Ngày sinh:</strong> {cert.dateOfBirth}</p>
+                                    <p><strong>Ngày tốt nghiệp:</strong> {cert.graduationDate}</p>
+                                    <p><strong>Xếp loại:</strong> {cert.grade}</p>
+                                    <p><strong>Điểm:</strong> {cert.score}</p>
                                     <p>
                                         <strong>NFT trên Explorer:</strong>{" "}
                                         <a
-                                            href={`https://testnet.coinex.net/token/0x73ED44E52D0CCC06Fa15284db8da1f08527D1E1E?a=${result.data.certificateID}`}
+                                            href={`https://testnet.coinex.net/token/0x9227241afb4F160d2d6460dACB0151b60e25e55A?a=${cert.certificateID}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
                                             Xem trên CoinEx Smart Chain
                                         </a>
                                     </p>
-
-                                    {/* 🔹 QR Code của bằng cấp - Cập nhật để mở link Explorer */}
-                                    <div style={styles.qrWrapper}>
-                                        <QRCode
-                                            value={`https://testnet.coinex.net/token/0x73ED44E52D0CCC06Fa15284db8da1f08527D1E1E?a=${result.data.certificateID}`}
-                                            size={200}
-                                            bgColor="transparent"
-                                        />
-                                    </div>
                                 </div>
-
-                            )}
+                            ))}
                         </div>
                     ) : (
-                        <div style={styles.error}>
-                            <h2>Bằng cấp không hợp lệ hoặc không tồn tại.</h2>
+                        // 🔹 Nếu tìm theo Mã NFT (chỉ có 1 bằng cấp)
+                        <div
+                            style={{
+                                ...styles.certSingle,
+                                backgroundColor: result.data.status.bgColor,
+                                borderColor: result.data.status.borderColor
+                            }}
+                        >
+                            <p>
+                                <strong>TRẠNG THÁI:</strong>{" "}
+                                <span style={{ color: result.data.status.textColor, fontWeight: "bold" }}>
+                                    {result.data.status.label}
+                                </span>
+                            </p>
+                            <p><strong>Mã bằng cấp:</strong> {result.data.certificateID}</p>
+                            <p><strong>Người nhận:</strong> {result.data.studentName}</p>
+                            <p><strong>Chủ sở hữu NFT:</strong> {result.data.owner}</p>
+                            <p><strong>Trường:</strong> {result.data.university}</p>
+                            <p><strong>Ngành:</strong> {result.data.major}</p>
+                            <p><strong>Ngày sinh:</strong> {result.data.dateOfBirth}</p>
+                            <p><strong>Ngày tốt nghiệp:</strong> {result.data.graduationDate}</p>
+                            <p><strong>Xếp loại:</strong> {result.data.grade}</p>
+                            <p><strong>Điểm:</strong> {result.data.score}</p>
+                            <p>
+                                <strong>NFT trên Explorer:</strong>{" "}
+                                <a
+                                    href={`https://testnet.coinex.net/token/0x9227241afb4F160d2d6460dACB0151b60e25e55A?a=${result.data.certificateID}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Xem trên CoinEx Smart Chain
+                                </a>
+                            </p>
                         </div>
                     )}
                 </div>
             )}
 
-
-
         </div>
     );
 }
 
-// Styles
+
+// 🖌 **Style giữ nguyên**
 const styles: { [key: string]: React.CSSProperties } = {
-    container: {
-        maxWidth: "75%",
-        margin: "0 auto",
-        minHeight: "500px",
-        padding: "20px",
-        textAlign: "center",
-        fontFamily: "Arial, sans-serif",
-        background: "#f9f9f9",
-        borderRadius: "8px",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    },
-    title: {
-        fontSize: "2rem",
-        fontWeight: "bold",
-        color: "#333",
-    },
-    subtitle: {
-        fontSize: "1.2rem",
-        color: "#666",
-        marginBottom: "20px",
-    },
-    form: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "10px",
-    },
-    input: {
-        width: "100%",
-        maxWidth: "400px",
-        padding: "10px",
-        border: "1px solid #ddd",
-        borderRadius: "5px",
-        fontSize: "1rem",
-    },
-    button: {
-        padding: "10px 20px",
-        backgroundColor: "#007bff",
-        color: "white",
-        border: "none",
-        borderRadius: "5px",
-        fontSize: "1rem",
-        cursor: "pointer",
-        transition: "background-color 0.3s ease",
-    },
-    result: {
-        marginTop: "20px",
-        textAlign: "left",
-    },
-    success: {
-        background: "#e6ffed",
-        padding: "15px",
-        border: "1px solid #4caf50",
-        borderRadius: "5px",
-        color: "#2e7d32",
-    },
-    error: {
-        background: "#ffe6e6",
-        padding: "15px",
-        border: "1px solid #f44336",
-        borderRadius: "5px",
-        color: "#d32f2f",
-    },
+    container: { maxWidth: "75%", margin: "0 auto", padding: "20px", textAlign: "center", background: "#f9f9f9", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" },
+    title: { fontSize: "2rem", fontWeight: "bold", color: "#333" },
+    subtitle: { fontSize: "1.2rem", color: "#666", marginBottom: "20px" },
+    form: { display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" },
+    input: { width: "100%", maxWidth: "400px", padding: "10px", border: "1px solid #ddd", borderRadius: "5px", fontSize: "1rem" },
+    button: { padding: "10px 20px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "5px", fontSize: "1rem", cursor: "pointer" },
+    result: { marginTop: "20px", textAlign: "left" },
+    success: { background: "#e6ffed", textAlign: "center", padding: "15px", border: "1px solid #4caf50", borderRadius: "5px", color: "#2e7d32" },
+    error: { background: "#ffe6e6", padding: "15px", border: "1px solid #f44336", borderRadius: "5px", color: "#d32f2f" },
 
     certificatesGrid: {
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", // 🔹 Hiển thị dạng grid tự động xuống hàng
+        gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
         gap: "20px",
         justifyContent: "center",
         alignItems: "start",
         marginTop: "10px",
     },
+
     certCard: {
         padding: "15px",
-        border: "1px solid #ddd",
         borderRadius: "10px",
-        background: "#fff",
         textAlign: "left",
         boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+        transition: "background-color 0.3s ease, border-color 0.3s ease",
     },
     certSingle: {
-        textAlign: "center",
+        textAlign: "left",
         padding: "15px",
-        border: "1px solid #ddd",
         borderRadius: "10px",
-        background: "#fff",
         boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+        transition: "background-color 0.3s ease, border-color 0.3s ease",
     },
-    qrWrapper: {
-        marginTop: "10px",
-        display: "flex",
-        justifyContent: "center",
-    },
+
 };

@@ -1,8 +1,6 @@
 "use client";
 
-import { getContract } from "@/lib/contract";
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from "chart.js";
-import { ethers } from "ethers";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -11,100 +9,64 @@ import { Button, Container, Form, Modal, Table } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
 import { toast } from "react-toastify";
 
-// 🔹 Đăng ký các thành phần cần thiết
+// Đăng ký các thành phần cần thiết
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-interface Degree {
-    id: string;              // ID của bằng cấp
-    degreeId: string;        // Mã bằng cấp
-    studentName: string;     // Tên sinh viên
-    university: string;      // Trường đại học
-    dateOfBirth: string;     // Ngày sinh
-    graduationDate: string;  // Ngày tốt nghiệp
-    grade: string;           // Xếp loại
-    score: number;           // Điểm tổng kết
-    issueDate: string;       // Ngày cấp bằng
-    ipfsHash: string;        // Hash IPFS lưu trữ bằng cấp
-    timestamp: string;       // Thời gian thực hiện hành động
+type Certificate = {
+    id: number;
+    studentName: string;
+    university: string;
+    dateOfBirth: string;
+    graduationDate: string;
+    score: number | null;
+    grade: string;
+    major: string;
+    ipfsHash: string;
+    issueDate: string | number;
     status: "Pending" | "Approved" | "Rejected";
-}
+};
 
 const DegreeHistoryPage = () => {
-    const [degreeHistory, setDegreeHistory] = useState<Degree[]>([]);
+    const [degreeHistory, setDegreeHistory] = useState<Certificate[]>([]);
     const [searchText, setSearchText] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
     const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
-    const [selectedDegree, setSelectedDegree] = useState<Degree | null>(null);
+    const [selectedDegree, setSelectedDegree] = useState<Certificate | null>(null);
     const [suggestions, setSuggestions] = useState<string[]>([]);
 
-    const fetchDegrees = async () => {
-        if (!window.ethereum) {
-            toast.error("Vui lòng kết nối MetaMask!");
-            return;
-        }
 
-        setLoading(true);
-
+    async function fetchCertificates() {
         try {
-            // Kết nối với MetaMask
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const contract = getContract(provider); // Lấy hợp đồng
+            const response = await fetch("/api/degrees");
+            const data = await response.json();
 
-            // Kiểm tra nếu MetaMask đã kết nối đúng
-            const network = await provider.getNetwork();
-            console.log("Network:", network);
-
-            // Lấy tổng số bằng cấp
-            const totalDegrees = await contract.totalDegrees();
-            console.log("Total Degrees:", totalDegrees.toString());
-
-            if (totalDegrees.toNumber() === 0) {
-                toast.warn("Không có bằng cấp nào được tìm thấy!");
-                setLoading(false);
-                return;
+            console.log("📢 API Data:", data);
+            if (data.success && Array.isArray(data.degrees)) {
+                setDegreeHistory(data.degrees);
+                console.log("📢 Cập nhật state `degreeHistory`:", data.degrees);
+            } else {
+                console.warn("⚠️ API không trả về danh sách bằng cấp hợp lệ.");
             }
-
-            // Lấy danh sách bằng cấp từ blockchain
-            const degrees: Degree[] = await Promise.all(
-                Array.from({ length: totalDegrees.toNumber() }, async (_, i) => {
-                    const degreeId = (i + 1).toString(); // ID bắt đầu từ 1 (chuyển thành string)
-                    const degree = await contract.getDegree(degreeId);
-
-                    const issueTimestamp = degree.timestamp ? new Date(Number(degree.timestamp) * 1000).toLocaleDateString() : "Không có dữ liệu";
-
-                    return {
-                        id: degreeId,
-                        degreeId: degreeId,
-                        studentName: degree.studentName,
-                        university: degree.university,
-                        dateOfBirth: new Date(Number(degree.dateOfBirth) * 1000).toLocaleDateString(),
-                        graduationDate: new Date(Number(degree.graduationDate) * 1000).toLocaleDateString(),
-                        grade: degree.grade,
-                        score: Number(degree.score),
-                        ipfsHash: degree.ipfsHash,
-                        issueDate: new Date(Number(degree.timestamp) * 1000).toLocaleDateString(),
-                        status: degree.status === 0 ? "Pending" : degree.status === 1 ? "Approved" : "Rejected", // Đảm bảo trạng thái đúng                      
-                        timestamp: issueTimestamp, // Thêm timestamp
-                    };
-                })
-            );
-
-            console.log("📌 Danh sách bằng cấp sau khi format:", degrees);
-            setDegreeHistory(degrees); // Lưu danh sách Degree vào state
         } catch (error) {
-            console.error("❌ Lỗi khi lấy dữ liệu từ blockchain:", error);
-            toast.error("Không thể tải dữ liệu từ blockchain!");
-        } finally {
-            setLoading(false);
+            console.error("🚨 Lỗi khi tải bằng cấp:", error);
         }
-    };
+    }
 
-    /** 🔹 Hiển thị chi tiết */
-    const handleShowDetails = (history: Degree) => {
+    useEffect(() => {
+
+        fetchCertificates();
+    }, []);
+    /** Hiển thị chi tiết */
+    const handleShowDetails = (history: Certificate) => {
         setSelectedDegree(history);
         setShowDetailModal(true);
     };
 
+    const formatDate = (date: any): string => {
+        if (!date) return "N/A";
+        if (!isNaN(Number(date))) return new Date(Number(date) * 1000).toLocaleDateString("vi-VN");
+        return new Date(date).toLocaleDateString("vi-VN");
+    };
     useEffect(() => {
         if (searchText.trim() === "") {
             setSuggestions([]);
@@ -113,30 +75,28 @@ const DegreeHistoryPage = () => {
 
         const matchedSuggestions = degreeHistory
             .filter((history) =>
-                history.degreeId.includes(searchText) ||
+                history.id.toString().includes(searchText) ||
                 history.studentName.toLowerCase().includes(searchText.toLowerCase()) ||
                 history.university.toLowerCase().includes(searchText.toLowerCase())
             )
-            .map((history) => `${history.degreeId} - ${history.studentName} - ${history.university}`);
+            .map((history) => `${history.id} - ${history.studentName} - ${history.university}`);
 
         setSuggestions(matchedSuggestions);
     }, [searchText, degreeHistory]);
 
-    useEffect(() => {
-        fetchDegrees();
-    }, []);
 
-    /** 🔹 Bộ lọc tìm kiếm */
+
+    /** Bộ lọc tìm kiếm */
     const filteredHistory = degreeHistory.filter((history) => {
         const lowerCaseSearch = searchText.toLowerCase();
-
         return (
             lowerCaseSearch === "" ||
-            history.degreeId.toLowerCase().includes(lowerCaseSearch) ||  // 🔹 Tìm theo mã bằng cấp
-            history.studentName.toLowerCase().includes(lowerCaseSearch) ||  // 🔹 Tìm theo tên sinh viên
-            history.university.toLowerCase().includes(lowerCaseSearch)  // 🔹 Tìm theo tên trường
+            history.id.toString().includes(lowerCaseSearch) ||
+            history.studentName.toLowerCase().includes(lowerCaseSearch) ||
+            history.university.toLowerCase().includes(lowerCaseSearch)
         );
     });
+
 
     /** 🔹 Xuất CSV */
     const exportToCSV = () => {
@@ -145,16 +105,28 @@ const DegreeHistoryPage = () => {
             return;
         }
 
-        const csvHeader = ["Degree Code,Student Name,School,Date of Issue,Score"];
-        const csvRows = degreeHistory.map(history =>
-            `${history.degreeId},"${history.studentName}","${history.university}",${history.timestamp},"${history.score}"`
-        );
+        // ✅ Định dạng tiêu đề CSV
+        const csvHeader = ["ID NFT", "Student Name", "Major", "University", "IsueDate", "Point", "Birth"];
 
-        const csvContent = [csvHeader, ...csvRows].join("\n");
+        // ✅ Chuyển đổi dữ liệu sang dạng CSV, xử lý ngày & số hợp lệ
+        const csvRows = degreeHistory.map(history => [
+            history.id,
+            `"${history.studentName}"`,
+            `"${history.major}"`,
+            `"${history.university}"`,
+            formatDate(history.issueDate),
+            history.score != null ? Number(history.score).toFixed(2) : "N/A",
+            formatDate(history.dateOfBirth)
+        ].join(","));
+
+        // ✅ Gộp nội dung CSV
+        const csvContent = [csvHeader.join(","), ...csvRows].join("\n");
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
+        // ✅ Lưu file
         saveAs(blob, "degree_history.csv");
     };
+
 
     /** 🔹 Xuất PDF */
     const exportToPDF = () => {
@@ -164,49 +136,54 @@ const DegreeHistoryPage = () => {
         }
 
         const doc = new jsPDF();
-        doc.text("Degree History", 14, 10);
-        doc.setFont("Arial");
-        const tableColumn = ["Degree Id", "Student Name", "University", "Date Of Issue", "Score", "Birth of Date"];
-        const tableRows = degreeHistory.map(history => [
-            history.degreeId,
-            history.studentName,
-            history.university,
-            history.timestamp,
-            history.score,
-            history.dateOfBirth,
-        ]);
 
+        // ✅ Tiêu đề chính
+        doc.setFont("times", "bold");
+        doc.setFontSize(22);
+        doc.text("List Certificate", 105, 15, { align: "center" });
+
+        // ✅ Tạo bảng PDF với tiêu đề
         autoTable(doc, {
-            head: [tableColumn],
-            body: tableRows,
-            startY: 20,
+            startY: 25,
+            head: [["ID NFT", "Student Name", "Major", "University", "IsueDate", "Point", "Birth"]],
+            body: degreeHistory.map(history => [
+                history.id,
+                history.studentName,
+                history.major,
+                history.university,
+                formatDate(history.issueDate),
+                history.score != null ? Number(history.score).toFixed(2) : "N/A",
+                formatDate(history.dateOfBirth)
+            ]),
         });
 
+        // ✅ Xuất file PDF
         doc.save("degree_history.pdf");
     };
 
-    // xuất pdf theo bằng
-    const exportDegreePDF = (degree: Degree | null) => {
+    // pdf theo cá nhân
+    const exportDegreePDF = (degree: Certificate | null) => {
         if (!degree) {
             toast.error("Không có dữ liệu để xuất!");
             return;
         }
 
-        // 📝 Tạo file PDF dọc (A4 Portrait)
+        // 🛠 Tạo file PDF (A4 Portrait)
         const doc = new jsPDF({
             orientation: "portrait",
             unit: "mm",
             format: "a4"
         });
 
-        // 🖼 Thêm hình nền watermark
+        // 🖼 Thêm hình nền watermark mờ
         const img = new Image();
-        img.src = "/images/trong1.jpg";
+        img.src = "/images/trong1.png";
 
         img.onload = function () {
             const pageWidth = 210;
             const pageHeight = 297;
-            // 📸 Căn chỉnh watermark full trang
+
+            // 🔹 Căn chỉnh ảnh cho phù hợp với trang A4
             const imgAspectRatio = img.width / img.height;
             let imgWidth = pageWidth;
             let imgHeight = pageHeight;
@@ -222,18 +199,18 @@ const DegreeHistoryPage = () => {
 
             doc.addImage(img, "PNG", xOffset, yOffset, imgWidth, imgHeight, "", "FAST");
 
-            // 🎓 Tiêu đề chính
+            // 🎓 **Tiêu đề chính**
             doc.setFont("times", "bold");
             doc.setFontSize(26);
             doc.setTextColor(0, 0, 80);
             doc.text("DEGREE CERTIFICATION", pageWidth / 2, 40, { align: "center" });
 
-            // 🏛 Hiển thị trường đại học
+            // 📚 **Thông tin trường đại học**
             doc.setFontSize(18);
             doc.setFont("times", "italic");
             doc.text(degree.university.toUpperCase(), pageWidth / 2, 55, { align: "center" });
 
-            // 📜 Nội dung chứng nhận
+            // 🏆 **Tên sinh viên**
             doc.setFontSize(14);
             doc.setFont("times", "normal");
             doc.text("This is to certify that", pageWidth / 2, 75, { align: "center" });
@@ -242,83 +219,136 @@ const DegreeHistoryPage = () => {
             doc.setFont("times", "bold");
             doc.text(degree.studentName.toUpperCase(), pageWidth / 2, 90, { align: "center" });
 
+            // 🔹 **Chuyên ngành**
             doc.setFontSize(14);
             doc.setFont("times", "normal");
-            doc.text(
-                "has successfully completed the certification process with the following details:",
-                pageWidth / 2,
-                105,
-                { align: "center" }
-            );
+            doc.text("has successfully completed the program in:", pageWidth / 2, 105, { align: "center" });
 
-            // 🔹 Thông tin chính (nằm ngoài bảng)
+            doc.setFontSize(20);
+            doc.setFont("times", "bold");
+            doc.text(degree.major.toUpperCase(), pageWidth / 2, 115, { align: "center" });
+
+            // 📅 **Thông tin chi tiết**
+            const formatDate = (date: any): string => {
+                if (!date) return "N/A";
+                if (!isNaN(Number(date))) return new Date(Number(date) * 1000).toLocaleDateString("vi-VN");
+                return new Date(date).toLocaleDateString("vi-VN");
+            };
+
             doc.setFontSize(14);
             doc.setFont("times", "bold");
-            doc.text("Degree ID:", 20, 125);
+            doc.text("Degree ID:", 20, 130);
             doc.setFont("times", "normal");
-            doc.text(degree.degreeId, 50, 125);
+            doc.text(degree.id.toString(), 70, 130);
 
             doc.setFont("times", "bold");
-            doc.text("Date Issued:", 20, 135);
+            doc.text("Date Issued:", 20, 140);
             doc.setFont("times", "normal");
-            doc.text(degree.timestamp, 50, 135);
+            doc.text(formatDate(degree.issueDate), 70, 140);
 
             doc.setFont("times", "bold");
-            doc.text("Grade:", 20, 145);
+            doc.text("Date of Birth:", 20, 150);
             doc.setFont("times", "normal");
-            doc.text(degree.grade, 50, 145);
+            doc.text(formatDate(degree.dateOfBirth), 70, 150);
 
             doc.setFont("times", "bold");
-            doc.text("Score:", 20, 155);
+            doc.text("Graduation Date:", 20, 160);
             doc.setFont("times", "normal");
-            doc.text(degree.score !== undefined ? degree.score.toFixed(2) : "N/A", 50, 155);
-
-            // 🔹 Thêm thông tin bổ sung (Ngày sinh, Ngày tốt nghiệp, IPFS Hash)
-            doc.setFont("times", "bold");
-            doc.text("Date of Birth:", 20, 165);
-            doc.setFont("times", "normal");
-            doc.text(degree.dateOfBirth, 50, 165);
+            doc.text(formatDate(degree.graduationDate), 70, 160);
 
             doc.setFont("times", "bold");
-            doc.text("Graduation Date:", 20, 175);
+            doc.text("Grade:", 20, 170);
             doc.setFont("times", "normal");
-            doc.text(degree.graduationDate, 50, 175);
+            doc.text(degree.grade || "N/A", 70, 170);
 
             doc.setFont("times", "bold");
-            doc.text("IPFS Hash:", 20, 185);
+            doc.text("Score:", 20, 180);
             doc.setFont("times", "normal");
-            doc.text(degree.ipfsHash, 50, 185);
+            doc.text(degree.score != null ? String(degree.score) : "N/A", 70, 180);
 
-            // ✍ Chữ ký & Ngày cấp
+            doc.setFont("times", "bold");
+            doc.text("IPFS Hash:", 20, 190);
+            doc.setFont("times", "normal");
+            doc.text(degree.ipfsHash ? degree.ipfsHash.slice(0, 20) + "..." : "N/A", 70, 190);
+
+            // ✍️ **Chữ ký & xác nhận**
             doc.setFontSize(14);
             doc.setFont("times", "italic");
             doc.text("Authorized Signature:", 140, 260);
             doc.text("_________________", 140, 265);
 
-            // 📄 Lưu file PDF
+            // 📥 **Lưu file PDF**
             doc.save(`Degree_Certification_${degree.studentName}.pdf`);
         };
     };
 
+    /** Thống kê số lượng cấp bằng theo tháng */
+    const getMonthlyStats = (certificates: Certificate[]) => {
+        console.log("📢 Dữ liệu đầu vào:", certificates);
 
-    /** 🔹 Thống kê số lượng cấp bằng theo tháng */
-    const getMonthlyStats = () => {
+        // 🔹 Kiểm tra nếu `certificates` không hợp lệ hoặc rỗng
+        if (!Array.isArray(certificates) || certificates.length === 0) {
+            console.warn("⚠️ Không có dữ liệu bằng cấp!");
+            return {
+                labels: [],
+                datasets: [
+                    {
+                        label: "Số lượng cấp bằng theo tháng",
+                        data: [],
+                        backgroundColor: "rgba(54, 162, 235, 0.6)",
+                    },
+                ],
+            };
+        }
+
+        // 🔹 Biến chứa số lượng cấp bằng theo từng tháng
         const monthData: { [key: string]: number } = {};
 
-        degreeHistory.forEach((history) => {
-            const month = new Date(history.timestamp).toLocaleDateString("vi-VN", { month: "long", year: "numeric" });
-            monthData[month] = (monthData[month] || 0) + 1;
+        // 🔹 Duyệt qua danh sách bằng cấp và gom nhóm theo tháng
+        certificates.forEach((certificate) => {
+            // ✅ Kiểm tra nếu `issueDate` hợp lệ
+            if (!certificate.issueDate) {
+                console.warn(`⚠️ Bằng cấp ID ${certificate.id} không có ngày cấp!`);
+                return;
+            }
+
+            // 🔹 Chuyển `issueDate` sang timestamp nếu cần
+            const issueDateTimestamp = isNaN(Number(certificate.issueDate))
+                ? new Date(certificate.issueDate).getTime()
+                : Number(certificate.issueDate) * 1000;
+
+            if (isNaN(issueDateTimestamp)) {
+                console.warn(`⚠️ Ngày cấp không hợp lệ: ${certificate.issueDate}`);
+                return;
+            }
+
+            // 🔹 Format thành "Tháng Năm" (VD: "Tháng 3 2024")
+            const formattedMonth = new Date(issueDateTimestamp).toLocaleDateString("vi-VN", {
+                month: "long",
+                year: "numeric",
+            });
+
+            // ✅ Tăng số lượng cấp bằng cho tháng đó
+            monthData[formattedMonth] = (monthData[formattedMonth] || 0) + 1;
         });
 
+        console.log("📊 Thống kê theo tháng:", monthData);
+
+        // ✅ Trả về dữ liệu biểu đồ
         return {
-            labels: Object.keys(monthData), // Phải là array của string (category)
-            datasets: [{
-                label: "Số lượng cấp bằng theo tháng",
-                data: Object.values(monthData),
-                backgroundColor: "rgba(54, 162, 235, 0.6)",
-            }],
+            labels: Object.keys(monthData), // Danh sách các tháng
+            datasets: [
+                {
+                    label: "Số lượng cấp bằng theo tháng",
+                    data: Object.values(monthData), // Số lượng bằng cấp tương ứng mỗi tháng
+                    backgroundColor: "rgba(54, 162, 235, 0.6)",
+                },
+            ],
         };
     };
+
+
+
 
     return (
         <Container>
@@ -360,7 +390,7 @@ const DegreeHistoryPage = () => {
 
 
 
-            {/* 📂 Xuất dữ liệu */}
+            {/* Xuất dữ liệu */}
             <div className="d-flex mb-3">
                 <Button variant="success" onClick={exportToCSV}>
                     📂 Xuất CSV
@@ -370,13 +400,14 @@ const DegreeHistoryPage = () => {
                 </Button>
             </div>
 
-            {/* 📋 Bảng lịch sử */}
+            {/*  Bảng lịch sử */}
             <Table striped bordered hover responsive>
                 <thead>
                     <tr>
                         <th className="text-center align-middle">Mã Bằng Cấp</th>
                         <th className="text-center align-middle">Tên Sinh Viên</th>
                         <th className="text-center align-middle">Trường</th>
+                        <th className="text-center align-middle">Chuyên Ngành</th>
                         <th className="text-center align-middle">Ngày Cấp</th>
                         <th className="text-center align-middle">Điểm</th>
                         <th className="text-center align-middle">Chi Tiết</th>
@@ -385,17 +416,18 @@ const DegreeHistoryPage = () => {
                 <tbody>
                     {filteredHistory.length > 0 ? (
                         filteredHistory.map((history) => (
-                            <tr key={history.degreeId}>
+                            <tr key={history.id}>
                                 <td className="text-center align-middle" style={{
                                     width: "50px",
                                     maxWidth: "150px",
                                     overflow: "hidden",
                                     whiteSpace: "nowrap",
                                     textOverflow: "ellipsis"
-                                }}>{history.degreeId}</td>
+                                }}>{history.id}</td>
                                 <td className="text-center align-middle">{history.studentName}</td>
                                 <td className="text-center align-middle">{history.university}</td>
-                                <td className="text-center align-middle">{history.timestamp}</td>
+                                <td className="text-center align-middle">{history.major}</td>
+                                <td>{formatDate(history.issueDate)}</td>
                                 <td className="text-center align-middle">{history.score}</td>
                                 <td className="text-center align-middle">
                                     <Button variant="info" size="sm" onClick={() => handleShowDetails(history)}>
@@ -412,13 +444,14 @@ const DegreeHistoryPage = () => {
                 </tbody>
             </Table>
 
-            {/* 📊 Biểu đồ thống kê */}
+            {/* Biểu đồ thống kê */}
             {degreeHistory.length > 0 && (
                 <div className="my-4">
                     <h4>📊 Thống Kê Cấp Bằng Theo Tháng</h4>
-                    <Bar data={getMonthlyStats()} />
+                    <Bar data={getMonthlyStats(degreeHistory)} />
                 </div>
             )}
+
             <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>📜 Chi Tiết Bằng Cấp</Modal.Title>
@@ -426,13 +459,14 @@ const DegreeHistoryPage = () => {
                 <Modal.Body>
                     {selectedDegree ? (
                         <div>
-                            <p><strong>🆔 Mã Bằng Cấp:</strong> {selectedDegree.degreeId}</p>
+                            <p><strong>🆔 Mã Bằng Cấp:</strong> {selectedDegree.id}</p>
                             <p><strong>👨‍🎓 Tên Sinh Viên:</strong> {selectedDegree.studentName}</p>
+                            <p><strong>📖 Chuyên Ngành:</strong> {selectedDegree.major}</p>
                             <p><strong>🏫 Trường Đại Học:</strong> {selectedDegree.university}</p>
-                            <p><strong>📅 Ngày Cấp:</strong> {selectedDegree.timestamp}</p>
-                            <p><strong>🔢 Điểm Số:</strong> {selectedDegree.score !== undefined ? selectedDegree.score.toFixed(2) : "N/A"}</p>
+                            <p><strong>📅 Ngày Cấp:</strong> {selectedDegree.issueDate}</p>
+                            <p><strong>🔢 Điểm Số:</strong> {selectedDegree.score}</p>
                             <p><strong>📅 Ngày Sinh:</strong> {selectedDegree.dateOfBirth}</p>
-                            <p><strong>ipfsHash:</strong> {selectedDegree.ipfsHash}</p>
+                            <p><strong>🛅 ipfsHash:</strong> {selectedDegree.ipfsHash}</p>
                         </div>
                     ) : (
                         <p>Không có dữ liệu.</p>
