@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 // Lấy danh sách bằng cấp của một trường
 export async function GET(req, { params }) {
     await connectToDatabase();
-    const { id } = params; // ID của trường đại học
+    const { id } = params; // ID trường
 
     if (!id) {
         return NextResponse.json({ error: "Thiếu ID trường đại học!" }, { status: 400 });

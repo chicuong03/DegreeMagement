@@ -22,12 +22,12 @@ const AdminPage = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-    // 🟢 Lấy danh sách user khi component mount
+    //  Lấy danh sách user khi component mount
     useEffect(() => {
         fetchUsers();
     }, []);
 
-    // 🔹 Lấy danh sách User từ API
+    // Lấy danh sách User từ API
     const fetchUsers = async () => {
         try {
             const response = await fetch('/api/users');
@@ -43,7 +43,7 @@ const AdminPage = () => {
         }
     };
 
-    // 🔹 Xử lý thêm người dùng
+    // Xử lý thêm người dùng
     const handleAddUser = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
@@ -85,13 +85,13 @@ const AdminPage = () => {
         }
     };
 
-    // 🔹 Mở modal chỉnh sửa user
+    // Mở modal chỉnh sửa user
     const handleEditClick = (user: User) => {
         setCurrentUser(user);
         setShowEditModal(true);
     };
 
-    // 🔹 Cập nhật thông tin user
+    // Cập nhật thông tin user
     const handleEditUser = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!currentUser) return;
@@ -125,8 +125,6 @@ const AdminPage = () => {
         }
     };
 
-
-    // 🔹 Xóa user
     const handleDeleteUser = async (userId: string) => {
         if (!window.confirm('Bạn có chắc chắn muốn xóa người dùng này?')) return;
 
@@ -176,6 +174,16 @@ const AdminPage = () => {
                                 <li>
                                     <Link href="/degreehistory" className="btn btn-outline-primary btn-sm w-100">
                                         History Degree
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/manage/universityKYC" className="btn btn-outline-primary btn-sm w-100">
+                                        KYC Resign
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/blogs" className="btn btn-outline-primary btn-sm w-100">
+                                        Blogs
                                     </Link>
                                 </li>
 

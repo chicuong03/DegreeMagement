@@ -3,7 +3,6 @@ import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
 //  Xác thực dữ liệu đầu vào
 const registerSchema = z.object({
     name: z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
@@ -14,7 +13,7 @@ const registerSchema = z.object({
 
 export async function POST(request: Request) {
     try {
-        // 🔹 Kết nối MongoDB
+        //  Kết nối MongoDB
         await connectToDatabase();
 
         const body = await request.json();
@@ -29,7 +28,7 @@ export async function POST(request: Request) {
 
         const { name, email, password, role } = validatedData.data;
 
-        // 🔹 Kiểm tra email đã tồn tại chưa
+        // Kiểm tra email đã tồn tại chưa
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return NextResponse.json(
@@ -38,10 +37,10 @@ export async function POST(request: Request) {
             );
         }
 
-        // 🔹 Hash mật khẩu trước khi lưu vào DB
+        // Hash mật khẩu trước khi lưu vào DB
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 🔹 Tạo người dùng mới
+        // Tạo người dùng mới
         const newUser = new User({
             name,
             email,
@@ -69,3 +68,6 @@ export async function POST(request: Request) {
         );
     }
 }
+
+
+

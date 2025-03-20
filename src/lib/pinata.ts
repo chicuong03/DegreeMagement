@@ -6,7 +6,7 @@ import fs from 'fs';
 const PINATA_API_KEY = process.env.PINATA_API_KEY;
 const PINATA_SECRET_KEY = process.env.PINATA_SECRET_API_KEY;
 
-// ✅ Upload file lên Pinata và trả về IPFS hash
+// Upload file lên Pinata và trả về IPFS hash
 export const uploadFileToPinata = async (filePath: string, filename: string = "certificate") => {
     const formData = new FormData();
 
@@ -30,12 +30,12 @@ export const uploadFileToPinata = async (filePath: string, filename: string = "c
         );
         return res.data.IpfsHash;
     } catch (error) {
-        console.error('❌ Lỗi khi tải file lên Pinata:', error);
+        console.error('Lỗi khi tải file lên Pinata:', error);
         throw new Error('Không thể upload file lên Pinata');
     }
 };
 
-// ✅ Upload metadata JSON lên Pinata
+//  Upload metadata JSON lên Pinata
 export const uploadMetadataToPinata = async (metadata: any) => {
     try {
         const res = await axios.post(
@@ -50,7 +50,7 @@ export const uploadMetadataToPinata = async (metadata: any) => {
         );
         return res.data.IpfsHash;
     } catch (error) {
-        console.error('❌ Lỗi khi tải metadata lên Pinata:', error);
+        console.error(' Lỗi khi tải metadata lên Pinata:', error);
         throw new Error('Không thể upload metadata lên Pinata');
     }
 };

@@ -1,14 +1,15 @@
 "use client";
 
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from "chart.js";
+import CryptoJS from "crypto-js";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import Link from 'next/link';
 import { useEffect, useState } from "react";
-import { Button, Container, Form, Modal, Table } from "react-bootstrap";
+import { Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
 import { toast } from "react-toastify";
-
 // Đăng ký các thành phần cần thiết
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -33,6 +34,7 @@ const DegreeHistoryPage = () => {
     const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
     const [selectedDegree, setSelectedDegree] = useState<Certificate | null>(null);
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [selectedChart, setSelectedChart] = useState("monthly");
 
 
     async function fetchCertificates() {
@@ -40,15 +42,15 @@ const DegreeHistoryPage = () => {
             const response = await fetch("/api/degrees");
             const data = await response.json();
 
-            console.log("📢 API Data:", data);
+            console.log("API Data:", data);
             if (data.success && Array.isArray(data.degrees)) {
                 setDegreeHistory(data.degrees);
-                console.log("📢 Cập nhật state `degreeHistory`:", data.degrees);
+                console.log("Cập nhật state `degreeHistory`:", data.degrees);
             } else {
-                console.warn("⚠️ API không trả về danh sách bằng cấp hợp lệ.");
+                console.warn("API không trả về danh sách bằng cấp hợp lệ.");
             }
         } catch (error) {
-            console.error("🚨 Lỗi khi tải bằng cấp:", error);
+            console.error("Lỗi khi tải bằng cấp:", error);
         }
     }
 
@@ -97,8 +99,7 @@ const DegreeHistoryPage = () => {
         );
     });
 
-
-    /** 🔹 Xuất CSV */
+    /** Xuất CSV */
     const exportToCSV = () => {
         if (degreeHistory.length === 0) {
             toast.error("Không có dữ liệu để xuất!");
@@ -127,8 +128,7 @@ const DegreeHistoryPage = () => {
         saveAs(blob, "degree_history.csv");
     };
 
-
-    /** 🔹 Xuất PDF */
+    /** Xuất PDF */
     const exportToPDF = () => {
         if (degreeHistory.length === 0) {
             toast.error("Không có dữ liệu để xuất!");
@@ -162,6 +162,8 @@ const DegreeHistoryPage = () => {
     };
 
     // pdf theo cá nhân
+    const PRIVATE_KEY = process.env.NEXT_PUBLIC_PRIVATE_KEY || "DEFAULT_SECRET_KEY";
+
     const exportDegreePDF = (degree: Certificate | null) => {
         if (!degree) {
             toast.error("Không có dữ liệu để xuất!");
@@ -182,8 +184,6 @@ const DegreeHistoryPage = () => {
         img.onload = function () {
             const pageWidth = 210;
             const pageHeight = 297;
-
-            // 🔹 Căn chỉnh ảnh cho phù hợp với trang A4
             const imgAspectRatio = img.width / img.height;
             let imgWidth = pageWidth;
             let imgHeight = pageHeight;
@@ -271,11 +271,26 @@ const DegreeHistoryPage = () => {
             doc.setFont("times", "normal");
             doc.text(degree.ipfsHash ? degree.ipfsHash.slice(0, 20) + "..." : "N/A", 70, 190);
 
+            doc.setFont("times", "bold");
+            doc.text("Date Issued:", 140, 240);
+            doc.setFont("times", "normal");
+            doc.text(formatDate(degree.issueDate), 170, 240);
+
             // ✍️ **Chữ ký & xác nhận**
             doc.setFontSize(14);
             doc.setFont("times", "italic");
             doc.text("Authorized Signature:", 140, 260);
             doc.text("_________________", 140, 265);
+
+            // 🔐 **Tạo chữ ký số**
+            const signatureData = `${degree.id}-${degree.studentName}-${degree.university}-${degree.issueDate}`;
+            const digitalSignature = CryptoJS.HmacSHA256(signatureData, PRIVATE_KEY).toString();
+
+            // 🔹 **Hiển thị chữ ký số**
+            doc.setFont("times", "bold");
+            doc.text("Digital Signature:", 20, 275);
+            doc.setFont("times", "normal");
+            doc.text(digitalSignature.slice(0, 50) + "...", 70, 275);
 
             // 📥 **Lưu file PDF**
             doc.save(`Degree_Certification_${degree.studentName}.pdf`);
@@ -347,111 +362,216 @@ const DegreeHistoryPage = () => {
         };
     };
 
+    const getUniversityStats = (certificates: Certificate[]) => {
+        console.log(" Dữ liệu đầu vào:", certificates);
 
+        //  Kiểm tra nếu `certificates` không hợp lệ hoặc rỗng
+        if (!Array.isArray(certificates) || certificates.length === 0) {
+            console.warn(" Không có dữ liệu bằng cấp!");
+            return {
+                labels: [],
+                datasets: [
+                    {
+                        label: "Số lượng cấp bằng theo trường đại học",
+                        data: [],
+                        backgroundColor: "rgba(75, 192, 192, 0.6)", // Màu xanh
+                    },
+                ],
+            };
+        }
+
+        // dếm sl bang cấp
+        const universityData: { [key: string]: number } = {};
+
+        certificates.forEach((certificate) => {
+            if (!certificate.university) {
+                console.warn(`Bằng cấp ID ${certificate.id} không có thông tin trường đại học!`);
+                return;
+            }
+
+
+            universityData[certificate.university] = (universityData[certificate.university] || 0) + 1;
+        });
+
+        console.log("Thống kê theo trường đại học:", universityData);
+
+
+        return {
+            labels: Object.keys(universityData),
+            datasets: [
+                {
+                    label: "Số lượng cấp bằng theo trường đại học",
+                    data: Object.values(universityData),
+                    backgroundColor: "rgba(75, 192, 192, 0.6)", // Màu xanh nhẹ 
+                },
+            ],
+        };
+    };
 
 
     return (
         <Container>
-            <h3 className="mb-4 mt-4">📜 Lịch Sử Cấp Bằng</h3>
-
-            <div style={{ position: "relative" }}>
-                <Form.Control
-                    type="text"
-                    placeholder="🔍 Nhập mã bằng cấp, tên sinh viên hoặc trường..."
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    className="mb-3"
-                />
-
-                {suggestions.length > 0 && (
-                    <ul style={{
-                        position: "absolute",
-                        backgroundColor: "white",
-                        border: "1px solid #ddd",
-                        borderRadius: "5px",
-                        width: "100%",
-                        listStyleType: "none",
-                        padding: "10px",
-                        margin: "0",
-                        maxHeight: "150px",
-                        overflowY: "auto",
-                        zIndex: 1000
-                    }}>
-                        {suggestions.map((item, index) => (
-                            <li key={index}
-                                style={{ padding: "5px", cursor: "pointer" }}
-                                onClick={() => setSearchText(item.split(" - ")[0])}>
-                                {item}
+            <Row>
+                <Col md={3}>
+                    <div style={adminStyle.sidebar}>
+                        <h5>Management</h5>
+                        <ul style={adminStyle.menu}>
+                            <li>
+                                <Link href="/manage" className="btn btn-outline-primary btn-sm w-100">
+                                    Manage Users
+                                </Link>
                             </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
+                            <li>
+                                <Link href="/manage/degrees" className="btn btn-outline-primary btn-sm w-100">
+                                    Manage Degrees
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/manage/university" className="btn btn-outline-primary btn-sm w-100">
+                                    Manage Universities
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/degreehistory" className="btn btn-outline-primary btn-sm w-100">
+                                    History Degree
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/manage/universityKYC" className="btn btn-outline-primary btn-sm w-100">
+                                    KYC Resign
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/blogs" className="btn btn-outline-primary btn-sm w-100">
+                                    Blogs
+                                </Link>
+                            </li>
 
+                        </ul>
+                    </div>
+                </Col>
 
+                <Col md={9}>
+                    <h3 className="mb-4 mt-4">📜 Lịch Sử Cấp Bằng</h3>
 
-            {/* Xuất dữ liệu */}
-            <div className="d-flex mb-3">
-                <Button variant="success" onClick={exportToCSV}>
-                    📂 Xuất CSV
-                </Button>
-                <Button variant="danger" className="ms-2" onClick={exportToPDF}>
-                    📑 Xuất PDF
-                </Button>
-            </div>
+                    <div style={{ position: "relative" }}>
+                        <Form.Control
+                            type="text"
+                            placeholder="🔍 Nhập mã bằng cấp, tên sinh viên hoặc trường..."
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            className="mb-3"
+                        />
 
-            {/*  Bảng lịch sử */}
-            <Table striped bordered hover responsive>
-                <thead>
-                    <tr>
-                        <th className="text-center align-middle">Mã Bằng Cấp</th>
-                        <th className="text-center align-middle">Tên Sinh Viên</th>
-                        <th className="text-center align-middle">Trường</th>
-                        <th className="text-center align-middle">Chuyên Ngành</th>
-                        <th className="text-center align-middle">Ngày Cấp</th>
-                        <th className="text-center align-middle">Điểm</th>
-                        <th className="text-center align-middle">Chi Tiết</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {filteredHistory.length > 0 ? (
-                        filteredHistory.map((history) => (
-                            <tr key={history.id}>
-                                <td className="text-center align-middle" style={{
-                                    width: "50px",
-                                    maxWidth: "150px",
-                                    overflow: "hidden",
-                                    whiteSpace: "nowrap",
-                                    textOverflow: "ellipsis"
-                                }}>{history.id}</td>
-                                <td className="text-center align-middle">{history.studentName}</td>
-                                <td className="text-center align-middle">{history.university}</td>
-                                <td className="text-center align-middle">{history.major}</td>
-                                <td>{formatDate(history.issueDate)}</td>
-                                <td className="text-center align-middle">{history.score}</td>
-                                <td className="text-center align-middle">
-                                    <Button variant="info" size="sm" onClick={() => handleShowDetails(history)}>
-                                        🔍 Xem
-                                    </Button>
-                                </td>
+                        {suggestions.length > 0 && (
+                            <ul style={{
+                                position: "absolute",
+                                backgroundColor: "white",
+                                border: "1px solid #ddd",
+                                borderRadius: "5px",
+                                width: "100%",
+                                listStyleType: "none",
+                                padding: "10px",
+                                margin: "0",
+                                maxHeight: "150px",
+                                overflowY: "auto",
+                                zIndex: 1000
+                            }}>
+                                {suggestions.map((item, index) => (
+                                    <li key={index}
+                                        style={{ padding: "5px", cursor: "pointer" }}
+                                        onClick={() => setSearchText(item.split(" - ")[0])}>
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
+                    {/* Xuất dữ liệu */}
+                    <div className="d-flex mb-3">
+                        <Button variant="success" onClick={exportToCSV}>
+                            📂 Xuất CSV
+                        </Button>
+                        <Button variant="danger" className="ms-2" onClick={exportToPDF}>
+                            📑 Xuất PDF
+                        </Button>
+                    </div>
+
+                    {/*  Bảng lịch sử */}
+                    <Table striped bordered hover responsive>
+                        <thead>
+                            <tr>
+                                <th className="text-center align-middle">Mã Bằng Cấp</th>
+                                <th className="text-center align-middle">Tên Sinh Viên</th>
+                                <th className="text-center align-middle">Trường</th>
+                                <th className="text-center align-middle">Chuyên Ngành</th>
+                                <th className="text-center align-middle">Ngày Cấp</th>
+                                <th className="text-center align-middle">Điểm</th>
+                                <th className="text-center align-middle">Chi Tiết</th>
                             </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td className="text-center">❌ Không có lịch sử cấp bằng</td>
-                        </tr>
-                    )}
-                </tbody>
-            </Table>
+                        </thead>
+                        <tbody>
+                            {filteredHistory.length > 0 ? (
+                                filteredHistory.map((history) => (
+                                    <tr key={history.id}>
+                                        <td className="text-center align-middle" style={{
+                                            width: "50px",
+                                            maxWidth: "150px",
+                                            overflow: "hidden",
+                                            whiteSpace: "nowrap",
+                                            textOverflow: "ellipsis"
+                                        }}>{history.id}</td>
+                                        <td className="text-center align-middle">{history.studentName}</td>
+                                        <td className="text-center align-middle">{history.university}</td>
+                                        <td className="text-center align-middle">{history.major}</td>
+                                        <td>{formatDate(history.issueDate)}</td>
+                                        <td className="text-center align-middle">{history.score}</td>
+                                        <td className="text-center align-middle">
+                                            <Button variant="info" size="sm" onClick={() => handleShowDetails(history)}>
+                                                🔍 Xem
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td className="text-center">❌ Không có lịch sử cấp bằng</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </Table>
 
-            {/* Biểu đồ thống kê */}
-            {degreeHistory.length > 0 && (
-                <div className="my-4">
-                    <h4>📊 Thống Kê Cấp Bằng Theo Tháng</h4>
-                    <Bar data={getMonthlyStats(degreeHistory)} />
-                </div>
-            )}
+                    <div>
+                        <h4>📊 Lựa Chọn Thống Kê</h4>
+                        <Form.Select
+                            value={selectedChart}
+                            onChange={(e) => setSelectedChart(e.target.value)}
+                            className="mb-4"
+                        >
+                            <option value="monthly">📅 Thống Kê Theo Tháng</option>
+                            <option value="university">🏫 Thống Kê Theo Trường Đại Học</option>
+                            <option value="both">📊 Hiển Thị Cả Hai</option>
+                        </Form.Select>
 
+                        {/* Biểu đồ thống kê theo tháng */}
+                        {(selectedChart === "monthly" || selectedChart === "both") && degreeHistory.length > 0 && (
+                            <div className="my-4">
+                                <h4>📊 Thống Kê Cấp Bằng Theo Tháng</h4>
+                                <Bar data={getMonthlyStats(degreeHistory)} />
+                            </div>
+                        )}
+
+                        {/* Biểu đồ thống kê theo trường đại học */}
+                        {(selectedChart === "university" || selectedChart === "both") && degreeHistory.length > 0 && (
+                            <div className="my-4">
+                                <h4>🏫 Thống Kê Cấp Bằng Theo Trường Đại Học</h4>
+                                <Bar data={getUniversityStats(degreeHistory)} />
+                            </div>
+                        )}
+                    </div>
+                </Col>
+            </Row>
             <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>📜 Chi Tiết Bằng Cấp</Modal.Title>
@@ -463,7 +583,7 @@ const DegreeHistoryPage = () => {
                             <p><strong>👨‍🎓 Tên Sinh Viên:</strong> {selectedDegree.studentName}</p>
                             <p><strong>📖 Chuyên Ngành:</strong> {selectedDegree.major}</p>
                             <p><strong>🏫 Trường Đại Học:</strong> {selectedDegree.university}</p>
-                            <p><strong>📅 Ngày Cấp:</strong> {selectedDegree.issueDate}</p>
+                            <p><strong>📅 Ngày Cấp:</strong> {formatDate(selectedDegree.issueDate)}</p>
                             <p><strong>🔢 Điểm Số:</strong> {selectedDegree.score}</p>
                             <p><strong>📅 Ngày Sinh:</strong> {selectedDegree.dateOfBirth}</p>
                             <p><strong>🛅 ipfsHash:</strong> {selectedDegree.ipfsHash}</p>
@@ -493,5 +613,17 @@ const DegreeHistoryPage = () => {
         </Container>
     );
 };
-
+const adminStyle = {
+    sidebar: {
+        backgroundColor: '#fff',
+        padding: '15px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        borderRadius: '8px',
+    },
+    menu: {
+        listStyle: 'none',
+        padding: 0,
+        margin: 0,
+    },
+};
 export default DegreeHistoryPage;

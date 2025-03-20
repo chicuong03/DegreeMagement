@@ -6,7 +6,7 @@ const FeedbackSchema = new mongoose.Schema(
         email: { type: String, required: true },
         message: { type: String, required: true },
     },
-    { timestamps: true } //MongoDB tự động thêm `createdAt` và `updatedAt`
+    { timestamps: true }
 );
 
 export default mongoose.models.Feedback || mongoose.model("Feedback", FeedbackSchema);

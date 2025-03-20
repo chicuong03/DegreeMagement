@@ -40,7 +40,7 @@ const ManageDegreesPage = () => {
 
 
 
-    /** 🔹 Lấy danh sách trường đại học */
+    /** Lấy danh sách trường đại học */
     const fetchUniversities = async () => {
         try {
             const response = await fetch("/api/universities");
@@ -52,7 +52,6 @@ const ManageDegreesPage = () => {
             toast.error("Không thể tải danh sách trường!");
         }
     };
-
 
     const formatScore = (score: unknown): string => {
         if (typeof score === "number") return score.toFixed(2); // Hiển thị 2 chữ số thập phân
@@ -88,15 +87,15 @@ const ManageDegreesPage = () => {
             const response = await fetch("/api/degrees");
             const data = await response.json();
 
-            console.log("📢 API Data:", data); // ✅ Log dữ liệu API
+            console.log(" API Data:", data);
             if (data.success && Array.isArray(data.degrees)) {
                 setCertificates(data.degrees);
-                console.log("📢 Cập nhật state `certificates`:", data.degrees); // ✅ Kiểm tra dữ liệu state
+                console.log(" Cập nhật state `certificates`:", data.degrees);
             } else {
-                console.warn("⚠️ API không trả về danh sách bằng cấp hợp lệ.");
+                console.warn(" API không trả về danh sách bằng cấp hợp lệ.");
             }
         } catch (error) {
-            console.error("🚨 Lỗi khi tải bằng cấp:", error);
+            console.error(" Lỗi khi tải bằng cấp:", error);
         }
     }
 
@@ -139,6 +138,17 @@ const ManageDegreesPage = () => {
                                         History Degree
                                     </Link>
                                 </li>
+                                <li>
+                                    <Link href="/manage/universityKYC" className="btn btn-outline-primary btn-sm w-100">
+                                        KYC Resign
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/blogs" className="btn btn-outline-primary btn-sm w-100">
+                                        Blogs
+                                    </Link>
+                                </li>
+
                             </ul>
                         </div>
                     </Col>

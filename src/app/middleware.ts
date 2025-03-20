@@ -4,7 +4,6 @@ import { NextResponse } from 'next/server';
 export function middleware(req: NextRequest) {
     const userRole = req.cookies.get('userRole')?.value;
 
-    // Kiểm tra nếu chưa đăng nhập userRole không tồn tại
     if (!userRole) {
         return NextResponse.redirect(new URL('/Auth', req.url));
     }

@@ -30,7 +30,7 @@ export async function POST(req) {
     }
 }
 
-// 🔹 Lấy tất cả phản hồi
+//  Lấy tất cả phản hồi
 export async function GET() {
     try {
         await connectToDatabase();

@@ -1,4 +1,4 @@
-// src/app/api/pinata/route.js
+
 import { uploadFileToPinata, uploadMetadataToPinata } from '@/lib/pinata';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { NextResponse } from 'next/server';
@@ -24,7 +24,7 @@ export async function POST(req) {
         const score = formData.get('score');
         const grade = formData.get('grade');
         const major = formData.get('major') || 'Không có dữ liệu';
-        const studentAddress = formData.get('studentAddress'); // Thêm địa chỉ ví học sinh
+        const studentAddress = formData.get('studentAddress');
 
         // Kiểm tra dữ liệu đầu vào
         if (!studentName || !university || !dateOfBirth || !graduationDate || !grade || !score) {
@@ -40,7 +40,7 @@ export async function POST(req) {
             await mkdir(tempDir, { recursive: true });
         } catch (error) {
             if (error.code !== 'EEXIST') {
-                console.error('❌ Lỗi khi tạo thư mục temp:', error);
+                console.error('Lỗi khi tạo thư mục temp:', error);
                 return NextResponse.json(
                     { success: false, error: 'Không thể tạo thư mục tạm thời' },
                     { status: 500 }
@@ -56,7 +56,7 @@ export async function POST(req) {
         try {
             await writeFile(tempFilePath, buffer);
         } catch (error) {
-            console.error('❌ Lỗi khi ghi file tạm:', error);
+            console.error('Lỗi khi ghi file tạm:', error);
             return NextResponse.json(
                 { success: false, error: 'Không thể xử lý file tải lên' },
                 { status: 500 }
@@ -125,11 +125,11 @@ export async function POST(req) {
                 success: true,
                 metadataUri: `ipfs://${metadataHash}`,
                 imageUri: `ipfs://${imageHash}`,
-                metadata // Trả về cả metadata để tiện sử dụng
+                metadata
             });
 
         } catch (error) {
-            console.error('❌ Lỗi khi upload lên Pinata:', error);
+            console.error('Lỗi khi upload lên Pinata:', error);
             return NextResponse.json(
                 {
                     success: false,
@@ -139,12 +139,11 @@ export async function POST(req) {
                 { status: 500 }
             );
         } finally {
-            // Xóa file tạm trong mọi trường hợp
+            // Xóa file tạm 
             try {
                 await unlink(tempFilePath);
             } catch (error) {
-                console.error('❌ Lỗi khi xóa file tạm:', error);
-                // Tiếp tục thực thi vì đây không phải lỗi nghiêm trọng
+                console.error('❌Lỗi khi xóa file tạm:', error);
             }
         }
 

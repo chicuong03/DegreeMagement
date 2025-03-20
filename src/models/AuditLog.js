@@ -2,19 +2,20 @@ import mongoose from "mongoose";
 
 const AuditLogSchema = new mongoose.Schema(
     {
-        action: { type: String, required: true }, // Ví dụ: 'issue_certificate', 'approve_certificate'
+        action: { type: String, required: true },
         certificate: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Certificate",
+            type: Number,
             required: true
         },
         performed_by: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
+            type: String,
             required: true
         },
         timestamp: { type: Date, default: Date.now }
     }
 );
 
-export default mongoose.models.AuditLog || mongoose.model("AuditLog", AuditLogSchema);
+
+const AuditLog = mongoose.models.AuditLog || mongoose.model("AuditLog", AuditLogSchema);
+
+export default AuditLog;

@@ -2,10 +2,19 @@ import { getContract } from "@/lib/contract";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ethers } from "ethers";
 import { NextResponse } from "next/server";
+import NodeCache from "node-cache";
 
+const cache = new NodeCache({ stdTTL: 300 }); // Cache trong 5 phút
 
 export async function GET() {
     try {
+
+        const cachedData = cache.get("degrees");
+        if (cachedData) {
+            console.log("Lấy dữ liệu từ cache");
+            return NextResponse.json({ success: true, ...cachedData }, { status: 200 });
+        }
+
         const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL);
         const contract = getContract(provider);
 
@@ -16,14 +25,14 @@ export async function GET() {
             try {
                 const [ipfsHash, status, issuer, timestamp] = await contract.getDegree(i);
 
-                // 🔹 Fetch metadata từ Pinata
+                // Fetch metadata từ Pinata
                 let metadata = {};
                 try {
                     const cleanIpfsHash = ipfsHash.replace("ipfs://", ""); // Xóa prefix
                     const response = await fetch(`https://gateway.pinata.cloud/ipfs/${cleanIpfsHash}`);
                     metadata = await response.json();
                 } catch (error) {
-                    console.error(`🚨 Lỗi khi tải metadata của bằng cấp ${i}:`, error);
+                    console.error(` Lỗi khi tải metadata của bằng cấp ${i}:`, error);
                 }
 
                 degrees.push({
@@ -42,25 +51,27 @@ export async function GET() {
                     image: metadata.image || null
                 });
             } catch (error) {
-                console.error(`🚨 Lỗi khi lấy bằng cấp ${i}:`, error);
+                console.error(` Lỗi khi lấy bằng cấp ${i}:`, error);
             }
         }
 
+        const responseData = { totalDegrees: totalDegrees.toString(), degrees };
+        cache.set("degrees", responseData); // Lưu cache
+
         return NextResponse.json({ success: true, totalDegrees: totalDegrees.toString(), degrees }, { status: 200 });
     } catch (error) {
-        console.error("🚨 Lỗi khi lấy danh sách bằng cấp:", error);
+        console.error("Lỗi khi lấy danh sách bằng cấp:", error);
         return NextResponse.json({ success: false, message: `Không thể lấy danh sách bằng cấp: ${error.message}` }, { status: 500 });
     }
 }
 
-
-// 📌 API để upload metadata lên Pinata và cấp bằng cấp trên Blockchain
+// API để upload metadata lên Pinata và cấp bằng cấp trên Blockchain
 export async function POST(req) {
     try {
         await connectToDatabase();
         const formData = await req.formData();
 
-        // Lấy các thông tin từ formData
+        // Lấy tt từ requestt của user
         const studentName = formData.get("studentName");
         const university = formData.get("university");
         const dateOfBirth = formData.get("dateOfBirth");
@@ -71,7 +82,7 @@ export async function POST(req) {
         const studentAddress = formData.get("studentAddress");
         const file = formData.get("file");
 
-        // Kiểm tra dữ liệu đầu vào
+        // check dữ input
         if (!studentName || !university || !dateOfBirth || !graduationDate || !grade ||
             !score || !major || !studentAddress || !file) {
             return NextResponse.json({ success: false, message: "Thiếu thông tin bắt buộc!" }, { status: 400 });
@@ -151,7 +162,7 @@ export async function POST(req) {
         // Tìm event DegreeIssued trong receipt để lấy degreeId
         const degreeIssuedEvent = receipt.events?.find(event => event.event === "DegreeIssued");
         const degreeId = degreeIssuedEvent?.args?.degreeId.toString() || "unknown";
-
+        cache.del("degrees");
         return NextResponse.json({
             success: true,
             message: "Bằng cấp đã được cấp trên Blockchain!",
@@ -169,7 +180,7 @@ export async function POST(req) {
     }
 }
 
-// 📌 Phê duyệt hoặc từ chối bằng cấp
+// Phê duyệt hoặc từ chối bằng cấp
 export async function PUT(req) {
     try {
         const { id, status, studentAddress } = await req.json();
@@ -199,8 +210,9 @@ export async function PUT(req) {
             tx = await contract.rejectDegree(id);
         }
 
-        const receipt = await tx.wait();
-
+        const receipt = await tx.wait(); // chờ xác nhận từ blcok
+        //revalidatePath("/degrees");
+        cache.del("degrees");
         return NextResponse.json({
             success: true,
             message: `Bằng cấp đã được ${status === "Approved" ? "phê duyệt" : "từ chối"} trên Blockchain!`,
@@ -216,7 +228,7 @@ export async function PUT(req) {
     }
 }
 
-// 📌 Lấy danh sách bằng cấp của một sinh viên
+// Lấy danh sách bằng cấp của một sinh viên
 export async function PATCH(req) {
     try {
         const { studentAddress } = await req.json();
@@ -290,7 +302,7 @@ export async function PATCH(req) {
     }
 }
 
-// 📌 Phê duyệt quyền cho trường đại học
+// hê duyệt quyền cho trường đại học
 export async function OPTIONS(req) {
     try {
         const { universityAddress, universityName } = await req.json();
@@ -307,7 +319,7 @@ export async function OPTIONS(req) {
         const wallet = new ethers.Wallet(process.env.NEXT_PUBLIC_PRIVATE_KEY, provider);
         const contract = getContract(wallet);
 
-        // Xác minh người gọi là chủ sở hữu hợp đồng
+        // Xác minh người gọi 
         const owner = await contract.owner();
         if (owner.toLowerCase() !== wallet.address.toLowerCase()) {
             return NextResponse.json({
@@ -316,7 +328,6 @@ export async function OPTIONS(req) {
             }, { status: 403 });
         }
 
-        // Gọi hàm authorizeUniversity
         const tx = await contract.authorizeUniversity(universityAddress, universityName);
         const receipt = await tx.wait();
 

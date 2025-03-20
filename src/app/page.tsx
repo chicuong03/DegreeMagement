@@ -1,9 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Table } from 'react-bootstrap';
+
+interface AuditLog {
+  _id: string;
+  certificate: number;
+  action: string;
+  performed_by: string;
+  timestamp: string;
+}
+
 
 export default function Home() {
+
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+
   useEffect(() => {
     const handleScroll = () => {
       const parallaxElement = document.getElementById('parallax-bg');
@@ -11,11 +24,29 @@ export default function Home() {
         parallaxElement.style.transform = `translateY(${window.scrollY * 0.5}px)`;
       }
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchAuditLogs = async () => {
+      try {
+        const response = await fetch('/api/auditlog');
+        const result = await response.json();
+
+        if (result.success) {
+          setAuditLogs(result.data);
+        } else {
+          console.error("Lỗi API:", result.error);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy audit log:", error);
+      }
+    };
+
+    fetchAuditLogs();
   }, []);
 
   return (
@@ -24,17 +55,113 @@ export default function Home() {
       <div id="parallax-bg" style={homeStyle.parallax}></div>
 
       {/* 3 thẻ */}
-      <section style={homeStyle.hero}>
+      <section className='mt-3' style={homeStyle.hero}>
         <h1 style={homeStyle.heroTitle}>Quản Lý Bằng Cấp Với Công Nghệ Blockchain</h1>
         <p style={homeStyle.heroSubtitle}>
           Đảm bảo tính minh bạch, bảo mật và hiện đại hóa quy trình quản lý thông tin.
         </p>
-        <Link href="/Auth">
+        <Link href="/">
           <button style={homeStyle.ctaButton}>Bắt đầu ngay</button>
         </Link>
       </section>
 
-      <section style={homeStyle.about}>
+      <div className="auditLog">
+        <h2 className="mt-3 text-3xl font-bold text-gray-800 uppercase tracking-wide border-b-4 pb-2">
+          Activity History
+        </h2>
+        <div className="tableContainer overflow-x-auto">
+          {/* Container bên ngoài với bo góc */}
+          <div style={{
+            borderRadius: '15px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            overflow: 'hidden',
+            backgroundColor: '#eeeeee',
+            padding: '8px'
+          }}>
+            <Table
+              hover
+              responsive
+              style={{
+                marginBottom: '0',
+                backgroundColor: '#eeeeee'
+              }}
+            >
+              <thead>
+                <tr style={{ backgroundColor: '#ff9940' }}>
+                  <th style={{
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
+                    padding: '10px',
+                    border: 'none',
+                    backgroundColor: '#ff9940',
+                    color: '#333'
+                  }}>ID</th>
+                  <th style={{
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
+                    padding: '10px',
+                    border: 'none',
+                    backgroundColor: '#ff9940',
+                    color: '#333'
+                  }}>Certificate</th>
+                  <th style={{
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
+                    padding: '10px',
+                    border: 'none',
+                    backgroundColor: '#ff9940',
+                    color: '#333'
+                  }}>Action</th>
+                  <th style={{
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
+                    padding: '10px',
+                    border: 'none',
+                    backgroundColor: '#ff9940',
+                    color: '#333'
+                  }}>Performed By</th>
+                  <th style={{
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
+                    padding: '10px',
+                    border: 'none',
+                    backgroundColor: '#ff9940',
+                    color: '#333'
+                  }}>Times</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.isArray(auditLogs) && auditLogs.length > 0 ? (
+                  auditLogs.map((log, index) => (
+                    <tr
+                      key={log._id}
+                      style={{
+                        backgroundColor: index % 2 === 0 ? '#fff5eb' : '#ffe0cc',
+                        border: 'none',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffcc99' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#fff5eb' : '#ffe0cc' }}
+                    >
+                      <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log._id}</td>
+                      <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log.certificate}</td>
+                      <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log.action}</td>
+                      <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log.performed_by}</td>
+                      <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{new Date(log.timestamp).toLocaleString()}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', color: '#6c757d', padding: '10px', border: 'none' }}>No data available</td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
+          </div>
+        </div>
+      </div>
+
+      <section className='mt-3' style={homeStyle.about}>
         <h2 style={homeStyle.sectionTitle}>Về Dự Án</h2>
         <p style={homeStyle.sectionText}>
           Dự án của chúng tôi tập trung vào việc ứng dụng công nghệ blockchain để quản lý bằng cấp.
@@ -138,6 +265,58 @@ const homeStyle: { [key: string]: React.CSSProperties } = {
     minHeight: '100vh',
     overflow: 'hidden',
     fontFamily: 'Arial, sans-serif',
+  },
+
+  auditLog: {
+    padding: "40px 20px",
+    textAlign: "center",
+    background: "#9abbdb",
+    fontFamily: "Arial, sans-serif"
+  },
+  tableContainer: {
+    overflowX: "auto",
+    marginTop: "20px",
+  },
+  table: {
+    width: "100%",
+    maxWidth: "900px",
+    margin: "0 auto",
+    borderCollapse: "separate",
+    borderSpacing: "0",
+    border: "none",
+    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
+    borderRadius: "8px",
+    overflow: "hidden",
+    backgroundColor: "#9abbdb"
+  },
+  th: {
+    background: "#9abbdb",
+    color: "#333",
+    padding: "14px",
+    textAlign: "center",
+    fontWeight: "600",
+    border: "none"
+  },
+  td: {
+    padding: "12px",
+    textAlign: "center",
+    border: "none"
+  },
+  evenRow: {
+    background: "#fff5eb",
+    transition: "background-color 0.3s"
+  },
+  oddRow: {
+    background: "#9abbdb",
+    transition: "background-color 0.3s"
+  },
+  rowHover: {
+    backgroundColor: "#9abbdb !important"
+  },
+  noData: {
+    padding: "20px",
+    color: "#9abbdb",
+    fontStyle: "italic"
   },
   parallax: {
     position: 'absolute',
@@ -262,7 +441,7 @@ const homeStyle: { [key: string]: React.CSSProperties } = {
     transition: 'transform 0.3s, background-color 0.3s',
   },
   team: {
-    padding: '50px 20px',
+    padding: '20px 20px',
     background: '#f1f3f5',
   },
   teamMembers: {

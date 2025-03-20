@@ -17,7 +17,7 @@ export default function Contact() {
         exit: { opacity: 0, x: 0, y: -100 },
     };
 
-    // 🔹 Lấy danh sách phản hồi từ API
+    // Lấy danh sách phản hồi từ API
     useEffect(() => {
         const fetchFeedbacks = async () => {
             try {
@@ -50,26 +50,26 @@ export default function Contact() {
                 emoji.style.position = "absolute";
                 emoji.style.top = "-10px";
                 emoji.style.left = `${Math.random() * 100}%`;
-                emoji.style.fontSize = `${Math.random() * 15 + 10}px`; // Giảm kích thước để mượt hơn
-                emoji.style.animation = `falling ${Math.random() * 4 + 6}s linear`; // Giảm thời gian để tránh quá tải
+                emoji.style.fontSize = `${Math.random() * 15 + 10}px`;
+                emoji.style.animation = `falling ${Math.random() * 4 + 6}s linear`;
 
                 container.appendChild(emoji);
 
-                // Xóa emoji khi rơi xong
+
                 emoji.addEventListener("animationend", () => {
                     emoji.remove();
                 });
             }
         };
 
-        createFallingEffect(); // Gọi ngay khi component mount
-        const interval = setInterval(createFallingEffect, 5000); // Cách 5 giây mới chạy tiếp
+        createFallingEffect();
+        const interval = setInterval(createFallingEffect, 5000);
 
-        return () => clearInterval(interval); // Dọn dẹp khi component unmount
+        return () => clearInterval(interval);
     }, []);
 
 
-    // 🔹 Xử lý gửi phản hồi
+    //  Xử lý gửi phản hồi
 
     const handleSendFeedback = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -95,7 +95,7 @@ export default function Contact() {
                 return;
             }
 
-            // ✅ Hiển thị phản hồi ngay lập tức mà không cần tải lại
+            // Hiển thị phản hồi ngay lập tức mà không cần tải lại
             setFeedbacks(prev => [{ name, email, message, createdAt: new Date().toISOString() }, ...prev]);
 
             toast.success("🎉 Phản hồi đã được gửi!");
@@ -106,7 +106,7 @@ export default function Contact() {
             setMessage("");
         } catch (error) {
             console.error("Lỗi khi gửi phản hồi:", error);
-            toast.error("❌ Không thể gửi phản hồi, vui lòng thử lại sau.");
+            toast.error("Không thể gửi phản hồi, vui lòng thử lại sau.");
         } finally {
             setLoading(false);
         }
@@ -187,6 +187,7 @@ export default function Contact() {
             </section>
 
             {/* Hiển thị phản hồi */}
+
             <section style={contactStyle.feedbackDisplay}>
                 <h2 style={contactStyle.feedbackTitle}>Phản Hồi Gần Đây</h2>
                 <div style={contactStyle.feedbackList}>
@@ -219,7 +220,6 @@ export default function Contact() {
                     }</style>
                 </div>
             </section>
-
         </div>
     );
 
@@ -350,7 +350,7 @@ const contactStyle: { [key: string]: React.CSSProperties } = {
     feedbackDisplay: {
         textAlign: "center",
         marginTop: "50px",
-        padding: "20px",
+        padding: "15px",
     },
 
     feedbackTitle: {

@@ -1,10 +1,9 @@
-//src/lib/contract.ts
+
 import { ethers } from 'ethers';
 
-// Địa chỉ hợp đồng đã triển khai
-export const contractAddress = '0x9227241afb4F160d2d6460dACB0151b60e25e55A'; // địa chỉ hợp đồng
 
-// ABI của smart contract
+export const contractAddress = '0x9227241afb4F160d2d6460dACB0151b60e25e55A';
+
 export const contractABI = [
     {
         "inputs": [],
@@ -876,11 +875,6 @@ export const contractABI = [
     }
 ];
 
-// Hàm để kết nối và trả về đối tượng hợp đồng
-// export const getContract = (provider: ethers.providers.Web3Provider): Contract => {
-//     const signer = provider.getSigner(); // Lấy signer từ MetaMask
-//     return new Contract(contractAddress, contractABI, signer);
-// };
 
 export function getContract(providerOrSigner: ethers.providers.Provider | ethers.Signer) {
     const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;

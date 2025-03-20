@@ -1,5 +1,5 @@
 "use client";
-import { getContract } from '@/lib/contract'; // Import contract ABI và địa chỉ hợp đồng
+import { getContract } from '@/lib/contract';
 import { ethers } from 'ethers';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -26,7 +26,7 @@ type Certificate = {
     grade: string;
     ipfsHash: string;
     issueDate: number;
-    status: "pending" | "approved" | "rejected";  // Change to lowercase
+    status: "pending" | "approved" | "rejected";
 };
 
 
@@ -72,8 +72,8 @@ const ManageUniversitiesPage = () => {
     };
 
     const handleShowEditModal = (university: University) => {
-        setCurrentUniversity(university); // Lưu thông tin trường đang chỉnh sửa
-        setShowEditUniversityModal(true); // Hiển thị modal sửa
+        setCurrentUniversity(university);
+        setShowEditUniversityModal(true);
     };
 
 
@@ -81,7 +81,7 @@ const ManageUniversitiesPage = () => {
         fetchUniversities();
     }, []);
 
-    // 🟢 Kết nối MetaMask
+    // Kết nối MetaMask
     const connectWallet = async () => {
         try {
             if (typeof window.ethereum === 'undefined') {
@@ -99,13 +99,13 @@ const ManageUniversitiesPage = () => {
         }
     };
 
-    // 🟢 Lấy danh sách trường đại học
+    // Lấy danh sách trường đại học
     const fetchUniversities = async () => {
         try {
             const response = await fetch('/api/universities');
             const data = await response.json();
 
-            console.log("Dữ liệu trả về từ API:", data); // ✅ Debug xem dữ liệu API
+            console.log("Dữ liệu trả về từ API:", data);
 
             if (!Array.isArray(data)) {
                 throw new Error("API không trả về một mảng hợp lệ!");
@@ -119,7 +119,7 @@ const ManageUniversitiesPage = () => {
     };
 
 
-    // 🟢 Cấp quyền cho trường trên Smart Contract
+    // Cấp quyền cho trường trên Smart Contract
     const grantUniversityPermission = async (address: string, name: string) => {
         if (!isConnected) {
             toast.error("Vui lòng kết nối MetaMask trước");
@@ -128,15 +128,17 @@ const ManageUniversitiesPage = () => {
 
         try {
             const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const contract = getContract(provider);
+            await provider.send("eth_requestAccounts", []);
+
+            const signer = provider.getSigner(); // ấy signer từ tài khoản đã kết nối
+            const contract = getContract(signer); //  Truyền signer vào contract
 
             toast.info("Đang xử lý giao dịch...");
             setLoading(true);
 
             const tx = await contract.authorizeUniversity(address, name);
-            await tx.wait();
+            await tx.wait(); // chờ
 
-            // ✅ Cập nhật MongoDB
             const response = await fetch("/api/universities", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -148,11 +150,10 @@ const ManageUniversitiesPage = () => {
                 throw new Error(errorData.message || "API call failed");
             }
 
-            //  Gọi lại API để cập nhật UI
+            // Gọi lại API 
             await fetchUniversities();
             toast.success("Cấp quyền thành công!");
             setShowGrantPermissionModal(false);
-
 
         } catch (error: any) {
             console.error("Lỗi cấp quyền:", error);
@@ -161,8 +162,6 @@ const ManageUniversitiesPage = () => {
             setLoading(false);
         }
     };
-
-
 
     // Thu hồi quyền trên Smart Contract
     const revokeUniversityPermission = async (wallet: string, name: string) => {
@@ -186,7 +185,6 @@ const ManageUniversitiesPage = () => {
             const tx = await contract.revokeUniversity(wallet);
             await tx.wait();
 
-            // Cập nhật trạng thái isAuthorized thành false sau khi thu hồi quyền trên blockchain
             const response = await fetch("/api/universities", {
                 method: "PUT",
                 headers: {
@@ -211,8 +209,7 @@ const ManageUniversitiesPage = () => {
         }
     };
 
-
-    // 🟢 Thêm trường đại học
+    // Thêm trường đại học
     const handleAddUniversity = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
@@ -244,11 +241,11 @@ const ManageUniversitiesPage = () => {
 
     const handleEditUniversity = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!currentUniversity) return; // Nếu không có trường nào được chọn thì thoát
+        if (!currentUniversity) return;
 
         const formData = new FormData(event.currentTarget);
         const updatedUniversity = {
-            id: currentUniversity._id, // Dùng _id thay vì id
+            id: currentUniversity._id,
             name: formData.get("name") as string,
             email: formData.get("email") as string,
             address: formData.get("address") as string,
@@ -272,7 +269,7 @@ const ManageUniversitiesPage = () => {
                 prev.map((uni) => (uni._id === updatedData._id ? updatedData : uni))
             );
 
-            setShowEditUniversityModal(false); // Đóng modal sau khi sửa thành công
+            setShowEditUniversityModal(false);
             toast.success("Cập nhật trường thành công!");
         } catch (error) {
             const errorMessage = (error as Error).message || "Có lỗi xảy ra!";
@@ -282,7 +279,7 @@ const ManageUniversitiesPage = () => {
     };
 
 
-    // 🟢 Xóa trường đại học
+    // Xóa trường đại học
     const handleDeleteUniversity = async (universityId: string) => {
         if (!window.confirm("Bạn có chắc chắn muốn xóa trường này không?")) return;
 
@@ -328,6 +325,17 @@ const ManageUniversitiesPage = () => {
                                         History Degree
                                     </Link>
                                 </li>
+                                <li>
+                                    <Link href="/manage/universityKYC" className="btn btn-outline-primary btn-sm w-100">
+                                        KYC Resign
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/blogs" className="btn btn-outline-primary btn-sm w-100">
+                                        Blogs
+                                    </Link>
+                                </li>
+
                             </ul>
                         </div>
                     </Col>
@@ -677,7 +685,7 @@ const ManageUniversitiesPage = () => {
                         </Button>
                         <Button
                             variant="primary"
-                            onClick={() => grantUniversityPermission(walletAddress, selectedUniversity?.name || '')} // ✅ Now passing both arguments
+                            onClick={() => grantUniversityPermission(walletAddress, selectedUniversity?.name || '')}
                             disabled={loading}
                         >
                             {loading ? 'Đang xử lý...' : 'Cấp quyền'}
@@ -686,7 +694,7 @@ const ManageUniversitiesPage = () => {
                     </BootstrapModal.Footer>
                 </BootstrapModal>
 
-                {/* 🔹 Modal Thu Hồi Quyền */}
+                {/* Modal Thu Hồi Quyền */}
                 <BootstrapModal
                     show={showRevokePermissionModal}
                     onHide={() => {

@@ -2,10 +2,10 @@ import { connectToDatabase } from "@/lib/mongodb";
 import Certificate from "@/models/Certificate";
 import { NextResponse } from "next/server";
 
-// 📌 Lấy thông tin chi tiết của một bằng cấp
+// Lấy thông tin chi tiết của một bằng cấp
 export async function GET(req, { params }) {
     await connectToDatabase();
-    const { id } = params; // 📌 Lấy degreeId từ URL
+    const { id } = params; // Lấy degreeId từ URL
 
     if (!id) {
         return NextResponse.json({ error: "Thiếu mã bằng cấp!" }, { status: 400 });

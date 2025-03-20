@@ -2,45 +2,46 @@
 
 import { getContract } from "@/lib/contract";
 import { ethers } from "ethers";
+import { QRCodeCanvas } from "qrcode.react";
 import { useState } from "react";
 
-// 🛠 **Lấy dữ liệu từ IPFS**
+//  **Lấy dữ liệu từ IPFS**
 const fetchIPFS = async (ipfsHash: string) => {
     try {
         if (!ipfsHash || !ipfsHash.startsWith("ipfs://")) {
-            console.error("❌ Không có IPFS Hash hợp lệ:", ipfsHash);
+            console.error("Không có IPFS Hash hợp lệ:", ipfsHash);
             return {};
         }
 
-        // ✅ **Chuyển đổi `ipfs://` thành URL Pinata**
+        // **Chuyển đổi `ipfs://` thành URL Pinata
         const url = `https://copper-dear-raccoon-181.mypinata.cloud/ipfs/${ipfsHash.replace("ipfs://", "")}`;
         console.log(`🔍 Fetching from IPFS: ${url}`);
 
         const response = await fetch(url);
         if (!response.ok) {
-            console.error(`❌ Lỗi tải từ IPFS (${response.status}):`, response.statusText);
+            console.error(` Lỗi tải từ IPFS (${response.status}):`, response.statusText);
             return {};
         }
 
         const data = await response.json();
-        console.log("✅ Dữ liệu từ IPFS:", data);
+        console.log("Dữ liệu từ IPFS:", data);
         return data;
     } catch (error) {
-        console.error("❌ Lỗi khi fetch từ IPFS:", error);
+        console.error("Lỗi khi fetch từ IPFS:", error);
         return {};
     }
 };
 
 export default function VerifyCertificate() {
-    const [searchInput, setSearchInput] = useState(""); // Giá trị nhập vào
+    const [searchInput, setSearchInput] = useState("");
     const [result, setResult] = useState<{ valid: boolean; data?: any } | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // 🔍 **Xử lý tìm kiếm**
+    // **Xử lý tìm kiếm**
     const handleSearch = async () => {
         if (!searchInput.trim()) {
-            setError("⚠️ Vui lòng nhập mã bằng cấp hoặc địa chỉ ví!");
+            setError(" Vui lòng nhập mã bằng cấp hoặc địa chỉ ví!");
             return;
         }
 
@@ -57,52 +58,52 @@ export default function VerifyCertificate() {
             } else if (/^0x[a-fA-F0-9]{40}$/.test(searchInput)) {
                 await searchByAddress(contract, searchInput);
             } else {
-                throw new Error("⚠️ Định dạng nhập không hợp lệ! Hãy nhập ID hoặc địa chỉ ví.");
+                throw new Error(" Định dạng nhập không hợp lệ! Hãy nhập ID hoặc địa chỉ ví.");
             }
         } catch (err) {
             setResult({ valid: false });
-            setError("❌ Không tìm thấy thông tin. Vui lòng kiểm tra lại!");
+            setError(" Không tìm thấy thông tin. Vui lòng kiểm tra lại!");
         } finally {
             setLoading(false);
         }
     };
 
-    // 🔹 **Tìm kiếm bằng mã NFT**
+    //  Tìm kiếm bằng mã NFT**
     const searchByID = async (contract: any, certID: number) => {
         if (isNaN(certID) || certID <= 0) {
-            throw new Error("⚠️ Mã bằng cấp không hợp lệ!");
+            throw new Error(" Mã bằng cấp không hợp lệ!");
         }
 
         const totalDegrees = await contract.totalDegrees();
         if (certID > totalDegrees.toNumber()) {
-            throw new Error("⚠️ Không tìm thấy bằng cấp!");
+            throw new Error(" Không tìm thấy bằng cấp!");
         }
 
-        // 🔹 **Lấy dữ liệu từ blockchain**
+        // **Lấy dữ liệu từ blockchain
         const degree = await contract.getDegree(certID);
-        console.log("📢 Dữ liệu từ blockchain:", degree);
+        console.log(" Dữ liệu từ blockchain:", degree);
 
-        // ✅ **Truy cập đúng vị trí của ipfsHash, issuer, timestamp**
+        //  ipfsHash, issuer, timestamp
         const ipfsHash = degree[0];
-        const issuer = degree[2]; // 🔹 Địa chỉ ví của người cấp bằng
-        const timestamp = degree[3]; // 🔹 Thời gian cấp bằng
+        const issuer = degree[2]; // 
+        const timestamp = degree[3];
 
         if (!ipfsHash || !ipfsHash.startsWith("ipfs://")) {
-            console.error("❌ Không có IPFS Hash hợp lệ:", ipfsHash);
+            console.error(" Không có IPFS Hash hợp lệ:", ipfsHash);
             setResult({ valid: false });
             return;
         }
 
-        // 🔹 **Lấy chủ sở hữu NFT từ blockchain**
+        //  Lấy chủ sở hữu NFT từ blockchain**
         const owner = await contract.ownerOf(certID);
-        console.log("📢 Chủ sở hữu NFT:", owner);
-        console.log("📢 Người cấp bằng (issuer):", issuer);
+        console.log(" Chủ sở hữu NFT:", owner);
+        console.log(" Người cấp bằng (issuer):", issuer);
 
-        // 🛠 **Fetch dữ liệu từ IPFS**
+        // Fetch dữ liệu từ IPFS*
         const ipfsData = await fetchIPFS(ipfsHash);
-        console.log("📢 Dữ liệu từ IPFS:", ipfsData);
+        console.log(" Dữ liệu từ IPFS:", ipfsData);
 
-        // 🔹 **Lấy dữ liệu từ `attributes` nếu có**
+        //  Lấy dữ liệu từ attributes
         const attributes = ipfsData.attributes || [];
         const getAttributeValue = (trait: string) => {
             const attr = attributes.find((a: any) => a.trait_type === trait);
@@ -113,14 +114,17 @@ export default function VerifyCertificate() {
             valid: true,
             data: {
                 certificateID: certID,
-                owner, // 🟢 Chủ sở hữu NFT
-                issuer, // 🟢 Địa chỉ ví của người cấp bằng
+                owner,
+                issuer,
                 studentName: ipfsData.studentName || getAttributeValue("Tên Sinh Viên"),
                 university: ipfsData.university || getAttributeValue("Trường Đại Học"),
                 major: ipfsData.major || getAttributeValue("Chuyên Ngành"),
                 dateOfBirth: ipfsData.dateOfBirth
                     ? new Date(ipfsData.dateOfBirth).toLocaleDateString()
                     : getAttributeValue("Ngày Sinh"),
+                graduationDate: ipfsData.graduationDate
+                    ? new Date(ipfsData.graduationDate).toLocaleDateString()
+                    : getAttributeValue("Ngày Tốt Nghiệp"),
                 issueDate: timestamp
                     ? new Date(Number(timestamp) * 1000).toLocaleDateString()
                     : "N/A",
@@ -140,37 +144,37 @@ export default function VerifyCertificate() {
     };
 
     const searchByAddress = async (contract: any, walletAddress: string) => {
-        console.log("🔍 Đang tìm bằng cấp của địa chỉ:", walletAddress);
+        console.log("Đang tìm bằng cấp của địa chỉ:", walletAddress);
 
         const degreesList = await contract.getDegreesByOwner(walletAddress);
-        console.log("📢 Danh sách ID bằng cấp:", degreesList);
+        console.log(" Danh sách ID bằng cấp:", degreesList);
 
         if (degreesList.length === 0) {
-            throw new Error("❌ Không tìm thấy bằng cấp cho địa chỉ này.");
+            throw new Error(" Không tìm thấy bằng cấp cho địa chỉ này.");
         }
 
         let userCertificates = [];
 
         for (let i = 0; i < degreesList.length; i++) {
             const degreeId = degreesList[i].toNumber();
-            console.log(`🔍 Đang lấy dữ liệu cho bằng cấp ID: ${degreeId}`);
+            console.log(`Đang lấy dữ liệu cho bằng cấp ID: ${degreeId}`);
 
             const degree = await contract.getDegree(degreeId);
-            console.log("📢 Dữ liệu từ blockchain:", degree);
+            console.log(" Dữ liệu từ blockchain:", degree);
 
-            // ✅ Lấy dữ liệu từ blockchain
+            // Lấy dữ liệu từ blockchain
             const ipfsHash = degree[0];
             const issuer = degree[2];
             const timestamp = degree[3];
 
             if (!ipfsHash || !ipfsHash.startsWith("ipfs://")) {
-                console.warn(`⚠️ Bằng cấp ID ${degreeId} không có IPFS Hash.`);
+                console.warn(` Bằng cấp ID ${degreeId} không có IPFS Hash.`);
                 continue;
             }
 
-            // 🛠 **Lấy dữ liệu từ IPFS**
+            // *ấy dữ liệu từ IPFS
             const ipfsData = await fetchIPFS(ipfsHash);
-            console.log("📢 Dữ liệu từ IPFS:", ipfsData);
+            console.log(" Dữ liệu từ IPFS:", ipfsData);
 
             userCertificates.push({
                 certificateID: degreeId,
@@ -195,7 +199,7 @@ export default function VerifyCertificate() {
         }
 
         if (userCertificates.length === 0) {
-            throw new Error("❌ Không tìm thấy bằng cấp cho địa chỉ này.");
+            throw new Error("Không tìm thấy bằng cấp cho địa chỉ này.");
         }
 
         setResult({ valid: true, data: userCertificates });
@@ -203,7 +207,7 @@ export default function VerifyCertificate() {
 
 
     return (
-        <div style={styles.container}>
+        <div className="mt-4" style={styles.container}>
             <h1 style={styles.title}>Tra cứu bằng cấp</h1>
             <p style={styles.subtitle}>Nhập mã bằng cấp hoặc địa chỉ ví để xác minh.</p>
 
@@ -216,6 +220,7 @@ export default function VerifyCertificate() {
                     style={styles.input}
                 />
                 <button
+                    className="mb-3"
                     onClick={handleSearch}
                     style={styles.button}
                     disabled={loading}
@@ -231,7 +236,7 @@ export default function VerifyCertificate() {
                     <h2>Thông Tin Bằng Cấp!</h2>
 
                     {Array.isArray(result.data) ? (
-                        // 🔹 Nếu tìm theo Địa chỉ Ví (có nhiều bằng cấp)
+                        // Nếu tìm theo Địa chỉ Ví 
                         <div style={styles.certificatesGrid}>
                             {result.data.map((cert, index) => (
                                 <div
@@ -267,11 +272,22 @@ export default function VerifyCertificate() {
                                             Xem trên CoinEx Smart Chain
                                         </a>
                                     </p>
+                                    {/*  Hiển thị mã QR nếu trạng thái là "Hợp lệ" */}
+                                    {cert.status?.label === "Hợp lệ" && (
+                                        <div style={{ marginTop: "10px", textAlign: "center" }}>
+                                            <QRCodeCanvas
+                                                value={`https://testnet.coinex.net/token/0x9227241afb4F160d2d6460dACB0151b60e25e55A?a=${cert.certificateID}`}
+                                                size={128}
+                                            />
+                                            <p style={{ fontSize: "0.9rem", color: "#555" }}>Quét mã để xem trên CoinEx</p>
+                                        </div>
+                                    )}
+
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        // 🔹 Nếu tìm theo Mã NFT (chỉ có 1 bằng cấp)
+                        // Nếu tìm theo Mã NFT
                         <div
                             style={{
                                 ...styles.certSingle,
@@ -304,6 +320,16 @@ export default function VerifyCertificate() {
                                     Xem trên CoinEx Smart Chain
                                 </a>
                             </p>
+                            {/* Hiển thị mã QR */}
+                            {result.data.status.label === "Hợp lệ" && (
+                                <div style={{ marginTop: "10px", textAlign: "center" }}>
+                                    <QRCodeCanvas
+                                        value={`https://testnet.coinex.net/token/0x9227241afb4F160d2d6460dACB0151b60e25e55A?a=${result.data.certificateID}`}
+                                        size={128}
+                                    />
+                                    <p style={{ fontSize: "0.9rem", color: "#555" }}>Quét mã để xem trên CoinEx</p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -314,7 +340,6 @@ export default function VerifyCertificate() {
 }
 
 
-// 🖌 **Style giữ nguyên**
 const styles: { [key: string]: React.CSSProperties } = {
     container: { maxWidth: "75%", margin: "0 auto", padding: "20px", textAlign: "center", background: "#f9f9f9", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" },
     title: { fontSize: "2rem", fontWeight: "bold", color: "#333" },

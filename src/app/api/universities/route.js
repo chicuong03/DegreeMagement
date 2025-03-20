@@ -2,28 +2,28 @@ import { connectToDatabase } from "@/lib/mongodb";
 import University from "@/models/University";
 import { NextResponse } from "next/server";
 
-// 🔹 Lấy danh sách tất cả trường đại học
+
 export async function GET() {
     await connectToDatabase();
     try {
         const universities = await University.find({}).select("name email address representative isAuthorized");
 
-        console.log("📌 Dữ liệu trả về từ DB:", universities); // Log để debug
+        console.log(" Dữ liệu trả về từ DB:", universities);
 
         return NextResponse.json(universities, { status: 200 });
     } catch (error) {
-        console.error("❌ Lỗi khi lấy danh sách trường:", error);
-        return NextResponse.json({ message: "Lỗi khi lấy danh sách trường từ CSDL!" }, { status: 500 });
+        console.error(" Lỗi khi lấy danh sách trường:", error);
+        return NextRespone.json({ message: "Lỗi khi lấy danh sách trường từ CSDL!" }, { status: 500 });
     }
 }
 
-// 🔹 Thêm trường đại học mới
+// Thêm trường đại học mới
 export async function POST(req) {
     await connectToDatabase();
     try {
         const body = await req.json();
 
-        // Chuẩn hóa địa chỉ ví thành chữ thường
+
         if (body.address) {
             body.address = body.address.toLowerCase();
         }
@@ -38,18 +38,18 @@ export async function POST(req) {
         }
 
         const newUniversity = await University.create(body);
-        console.log("✅ Đã thêm trường mới:", newUniversity);
+        console.log(" Đã thêm trường mới:", newUniversity);
 
         return NextResponse.json(newUniversity, { status: 201 });
     } catch (error) {
-        console.error("❌ Lỗi khi thêm trường:", error);
+        console.error(" Lỗi khi thêm trường:", error);
         return NextResponse.json({
             message: `Thêm trường thất bại: ${error.message || "Lỗi không xác định"}`
         }, { status: 500 });
     }
 }
 
-// 🔹 Cập nhật thông tin trường đại học
+// Cập nhật thông tin trường đại học
 export async function PUT(req) {
     await connectToDatabase();
     try {
@@ -61,21 +61,21 @@ export async function PUT(req) {
         }
 
         const normalizedAddress = address.toLowerCase();
-        console.log("🔍 Đang tìm địa chỉ:", normalizedAddress);
+        console.log(" Đang tìm địa chỉ:", normalizedAddress);
 
         // Kiểm tra trường có tồn tại không
         const existingUniversity = await University.findOne({ address: normalizedAddress });
-        console.log("🔎 Kết quả tìm kiếm:", existingUniversity);
+        console.log(" Kết quả tìm kiếm:", existingUniversity);
 
         if (!existingUniversity) {
-            // Thử tìm không phân biệt chữ hoa/thường
+
             const allUniversities = await University.find({});
             const matchByAddressIgnoreCase = allUniversities.find(
                 u => u.address && u.address.toLowerCase() === normalizedAddress
             );
 
             if (matchByAddressIgnoreCase) {
-                // Nếu tìm thấy, cập nhật để chuẩn hóa địa chỉ thành chữ thường
+
                 const updatedUniversity = await University.findByIdAndUpdate(
                     matchByAddressIgnoreCase._id,
                     {
@@ -85,7 +85,7 @@ export async function PUT(req) {
                     { new: true }
                 );
 
-                console.log("✅ Đã chuẩn hóa và cập nhật:", updatedUniversity);
+                console.log(" Đã chuẩn hóa và cập nhật:", updatedUniversity);
                 return NextResponse.json(updatedUniversity, { status: 200 });
             }
 
@@ -101,18 +101,18 @@ export async function PUT(req) {
             { new: true }
         );
 
-        console.log("📊 Kết quả sau khi cập nhật:", updatedUniversity);
+        console.log("Kết quả sau khi cập nhật:", updatedUniversity);
 
         return NextResponse.json(updatedUniversity, { status: 200 });
     } catch (error) {
-        console.error("❌ Lỗi khi cập nhật trường:", error);
+        console.error("Lỗi khi cập nhật trường:", error);
         return NextResponse.json({
             message: `Cập nhật trạng thái thất bại: ${error.message || "Lỗi không xác định"}`
         }, { status: 500 });
     }
 }
 
-// 🔹 Xóa trường đại học
+// Xóa trường đại học
 export async function DELETE(req) {
     await connectToDatabase();
     try {
@@ -129,13 +129,13 @@ export async function DELETE(req) {
             return NextResponse.json({ message: "Không tìm thấy trường với ID này!" }, { status: 404 });
         }
 
-        console.log("❌ Đã xóa trường:", deletedUniversity.name);
+        console.log(" Đã xóa trường:", deletedUniversity.name);
 
         return NextResponse.json({
             message: `Xóa trường thành công: ${deletedUniversity.name}`
         }, { status: 200 });
     } catch (error) {
-        console.error("❌ Lỗi khi xóa trường:", error);
+        console.error(" Lỗi khi xóa trường:", error);
         return NextResponse.json({
             message: `Xóa trường thất bại: ${error.message || "Lỗi không xác định"}`
         }, { status: 500 });

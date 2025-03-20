@@ -15,7 +15,7 @@ const AuthPage = () => {
     const [error, setError] = useState("");
     const router = useRouter();
 
-    // 🔹 Kiểm tra nếu user đã đăng nhập => Chuyển hướng
+    // Kiểm tra nếu user đã đăng nhập => Chuyển hướng
     useEffect(() => {
         const checkSession = async () => {
             const res = await fetch("/api/auth/session");
@@ -27,7 +27,7 @@ const AuthPage = () => {
         checkSession();
     }, []);
 
-    // 🔹 Xử lý đăng nhập
+    // Xử lý đăng nhập
     const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);
@@ -48,16 +48,16 @@ const AuthPage = () => {
             }
 
             toast.success("🎉 Đăng nhập thành công!");
-            router.push("/"); // 🔹 Chuyển hướng sau khi đăng nhập
+            router.push("/"); //  Chuyển home
             window.location.href = '/';
         } catch (error) {
-            setError("❌ Không thể kết nối đến server.");
+            setError("Không thể kết nối đến server.");
         } finally {
             setLoading(false);
         }
     };
 
-    // 🔹 Xử lý đăng ký tài khoản
+    //  Xử lý đăng ký tài khoản
     const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);
@@ -70,7 +70,7 @@ const AuthPage = () => {
         }
 
         try {
-            const response = await fetch("/api/auth/register", {
+            const response = await fetch("/api/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, password, role: "student" }), // Default là student
@@ -86,7 +86,7 @@ const AuthPage = () => {
             toast.success("🎉 Đăng ký thành công! Vui lòng đăng nhập.");
             setKey("login"); // Chuyển về tab đăng nhập
         } catch (error) {
-            setError("❌ Không thể kết nối đến server.");
+            setError(" Không thể kết nối đến server.");
         } finally {
             setLoading(false);
         }
@@ -109,7 +109,7 @@ const AuthPage = () => {
                             className="mb-4"
                             justify
                         >
-                            {/* 🔹 Form Đăng Nhập */}
+                            {/* Form Đăng Nhập */}
                             <Tab eventKey="login" title="Đăng nhập">
                                 <Form onSubmit={handleLogin}>
                                     <Form.Group controlId="formLoginEmail" className="mb-4">
@@ -140,7 +140,7 @@ const AuthPage = () => {
                                 </Form>
                             </Tab>
 
-                            {/* 🔹 Form Đăng Ký */}
+                            {/* Form Đăng Ký */}
                             <Tab eventKey="register" title="Đăng ký">
                                 <Form onSubmit={handleRegister}>
                                     <Form.Group controlId="formRegisterName" className="mb-4">

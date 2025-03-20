@@ -40,14 +40,14 @@ export async function PUT(req, { params }) {
 
         await connectToDatabase();
 
-        // 🔹 Nếu có mật khẩu mới, hash trước khi cập nhật
+        // has mật khẩu mới
         let updatedFields = { name, email, role };
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
             updatedFields.password = hashedPassword;
         }
 
-        // 🔹 Cập nhật thông tin user
+        // Cập nhật tt
         const updatedUser = await User.findByIdAndUpdate(id, updatedFields, { new: true });
 
         if (!updatedUser) {

@@ -2,10 +2,9 @@
 
 import { getContract } from "@/lib/contract";
 import { ethers } from "ethers";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import { toast } from "react-toastify";
-
 type Certificate = {
     id: number;
     studentName: string;
@@ -47,23 +46,52 @@ export default function GrantCertificate() {
     const [universities, setUniversities] = useState<{ id: number; name: string }[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
-    const [totalDegrees, setTotalDegrees] = useState(0);
 
-    // Kết nối MetaMask
-    // const connectWallet = async () => {
-    //     if (!window.ethereum) {
-    //         toast.error("Bạn cần cài đặt MetaMask!");
-    //         return;
-    //     }
-    //     try {
-    //         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-    //         setAccount(accounts[0]);
-    //         toast.success(`Đã kết nối: ${accounts[0]}`);
-    //     } catch (error) {
-    //         console.error(error);
-    //         toast.error("Kết nối thất bại!");
-    //     }
-    // };
+    const [refreshData, setRefreshData] = useState(0);
+
+    // lưu nhật kí
+    const saveAuditLog = async (degreeId: number, action: string) => {
+        try {
+            if (!window.ethereum) {
+                console.error("MetaMask chưa được kết nối!");
+                return;
+            }
+
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const walletAddress = await signer.getAddress();
+
+            // Tkiểm tra và chuyển đổi giá trị
+            const certificateId = Number(degreeId);
+            console.log("Gửi log:", {
+                certificate: certificateId,
+                action,
+                performed_by: walletAddress
+            });
+
+            // Sau đó gửi giá trị đã chuyển đổi
+            const response = await fetch("/api/auditlog", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    certificate: certificateId,
+                    action,
+                    performed_by: walletAddress
+                }),
+            });
+
+            console.log("Response status:", response.status);
+            const data = await response.json();
+            console.log(" Kết quả trả về log:", data);
+
+            if (!response.ok) {
+                throw new Error(data.message || data.error || "Không thể lưu nhật ký!");
+            }
+        } catch (error) {
+            console.error(" Lỗi ghi nhật ký:", error);
+        }
+    };
+
 
     const connectWallet = async () => {
         if (!window.ethereum) {
@@ -86,7 +114,6 @@ export default function GrantCertificate() {
 
             toast.success(`Đã kết nối: ${accounts[0]}`);
 
-            // Sau khi kết nối, tải danh sách bằng cấp
             await fetchCertificates();
         } catch (error) {
             console.error(error);
@@ -114,35 +141,58 @@ export default function GrantCertificate() {
         }
     }, [formData.score]);
 
-
-    async function fetchCertificates() {
+    // không load lại 
+    const fetchCertificates = useCallback(async () => {
         try {
+            setIsLoading(true);
+
             const response = await fetch("/api/degrees");
             const data = await response.json();
 
-            console.log("📢 API Data:", data); // ✅ Log dữ liệu API
+            console.log("API Data:", data);
             if (data.success && Array.isArray(data.degrees)) {
                 setCertificates(data.degrees);
-                console.log("📢 Cập nhật state `certificates`:", data.degrees); // ✅ Kiểm tra dữ liệu state
+
+                console.log("Cập nhật state `certificates`:", data.degrees);
             } else {
-                console.warn("⚠️ API không trả về danh sách bằng cấp hợp lệ.");
+                console.warn("API không trả về danh sách bằng cấp hợp lệ.");
             }
         } catch (error) {
-            console.error("🚨 Lỗi khi tải bằng cấp:", error);
+            console.error("Lỗi khi tải bằng cấp:", error);
+        } finally {
+            setIsLoading(false);
         }
-    }
-
-    useEffect(() => {
-
-        fetchCertificates();
     }, []);
+
+    // Chỉ fetch dữ liệu khi component mount hoặc khi refreshData thay đổi
+    useEffect(() => {
+        fetchCertificates();
+    }, [fetchCertificates, refreshData]);
+
+    // Tối ưu hóa fetchUniversities bằng useCallback
+    const fetchUniversities = useCallback(async () => {
+        try {
+            const response = await fetch("/api/universities");
+            if (!response.ok) throw new Error("Không thể tải danh sách trường");
+            const data = await response.json();
+            setUniversities(data);
+        } catch (error) {
+            console.error("Lỗi:", error);
+            toast.error("Không thể tải danh sách trường!");
+        }
+    }, []);
+
+    // Fetch universities chỉ khi component mount
+    useEffect(() => {
+        fetchUniversities();
+    }, [fetchUniversities]);
 
     const handleApprove = async (degreeId: number) => {
         if (!window.ethereum) {
             toast.error("Hãy kết nối MetaMask!");
             return;
         }
-        // Tìm thông tin sinh viên từ danh sách bằng cấp
+        // Tìm tt sv
         const degree = certificates.find(cert => cert.id === degreeId);
         if (!degree) {
             toast.error("Không tìm thấy thông tin bằng cấp!");
@@ -167,7 +217,9 @@ export default function GrantCertificate() {
             await tx.wait();
 
             toast.success("Phê duyệt thành công!");
-            fetchCertificates(); // Tải lại danh sách sau khi phê duyệt
+            setRefreshData(prev => prev + 1);
+            await saveAuditLog(degreeId, "APPROVED");
+
         } catch (error) {
             console.error(error);
             toast.error("Phê duyệt thất bại!");
@@ -176,21 +228,20 @@ export default function GrantCertificate() {
         }
     };
 
-    useEffect(() => {
-        const fetchUniversities = async () => {
-            try {
-                const response = await fetch("/api/universities");
-                if (!response.ok) throw new Error("Không thể tải danh sách trường");
-                const data = await response.json();
-                setUniversities(data);
-            } catch (error) {
-                console.error("Lỗi:", error);
-                toast.error("Không thể tải danh sách trường!");
-            }
-        };
+    //     const fetchUniversities = async () => {
+    //         try {
+    //             const response = await fetch("/api/universities");
+    //             if (!response.ok) throw new Error("Không thể tải danh sách trường");
+    //             const data = await response.json();
+    //             setUniversities(data);
+    //         } catch (error) {
+    //             console.error("Lỗi:", error);
+    //             toast.error("Không thể tải danh sách trường!");
+    //         }
+    //     };
 
-        fetchUniversities();
-    }, []);
+    //     fetchUniversities();
+    // }, []);
 
     // Cấp bằng NFT trên Blockchain pinata
     const handleGrantCertificate = async () => {
@@ -201,7 +252,6 @@ export default function GrantCertificate() {
 
         const { studentName, university, dateOfBirth, graduationDate, grade, score, major, studentAddress } = formData;
 
-        // Kiểm tra thông tin
         if (!studentName || !university || !dateOfBirth || !graduationDate || !grade || !score || !major || !studentAddress) {
             toast.error("Vui lòng nhập đầy đủ thông tin!");
             return;
@@ -215,7 +265,7 @@ export default function GrantCertificate() {
         setIsLoading(true);
 
         try {
-            // Bước 1: Upload ảnh và metadata lên Pinata
+            // : Upload ảnh và metadata lên Pinata
             const pinataFormData = new FormData();
             pinataFormData.append("file", selectedFile);
             pinataFormData.append("studentName", studentName);
@@ -227,7 +277,7 @@ export default function GrantCertificate() {
             pinataFormData.append("major", major);
             pinataFormData.append("studentAddress", studentAddress);
 
-            // Gửi request đến API /api/pinata
+            // Gửi request 
             const pinataResponse = await fetch("/api/pinata", {
                 method: "POST",
                 body: pinataFormData,
@@ -241,26 +291,35 @@ export default function GrantCertificate() {
             // Lấy URI metadata từ response
             const metadataUri = pinataData.metadataUri;
 
-            // Bước 2: Kết nối với smart contract qua MetaMask
+            //  Kết nối với smart contract qua MetaMask
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             await provider.send("eth_requestAccounts", []); // Yêu cầu kết nối MetaMask
             const signer = provider.getSigner();
             const contract = getContract(provider).connect(signer);
 
-            // Hiển thị thông báo để người dùng biết quá trình đang diễn ra
             toast.info("Đang tạo NFT trên blockchain, vui lòng xác nhận giao dịch trong MetaMask...");
 
-            // Bước 3: Gọi hàm issueDegree từ smart contract
+            //  Gọi hàm issueDegree từ smart contract
             const tx = await contract.issueDegree(metadataUri, studentAddress);
 
             // Hiển thị thông báo đang đợi xác nhận giao dịch
             toast.info("Đang đợi xác nhận giao dịch từ blockchain...");
 
-            // Đợi giao dịch được xác nhận
+            // Đợi xn
             const receipt = await tx.wait();
 
-            // Thông báo thành công khi giao dịch đã được xác nhận
             toast.success(`Cấp bằng thành công! Transaction hash: ${receipt.transactionHash}`);
+
+            const event = receipt.events.find((e: any) => e.event === "DegreeIssued");
+
+            if (!event) {
+                throw new Error("Không tìm thấy sự kiện DegreeIssued!");
+            }
+
+            const degreeId = event.args.degreeId.toNumber(); // Chuyển sang số nguyên
+            console.log("ID bằng cấp:", degreeId);
+            await saveAuditLog(degreeId, "GRANTED");
+
 
             // Reset form
             setFormData({
@@ -277,7 +336,7 @@ export default function GrantCertificate() {
 
 
             // Cập nhật danh sách bằng cấp
-            fetchCertificates();
+            setRefreshData(prev => prev + 1);
 
         } catch (error) {
             console.error("Lỗi khi cấp bằng:", error);
@@ -311,7 +370,8 @@ export default function GrantCertificate() {
             await tx.wait();
 
             toast.success("Từ chối thành công!");
-            fetchCertificates();
+            await saveAuditLog(degreeId, "REJECTED");
+            setRefreshData(prev => prev + 1);
         } catch (error) {
             console.error(error);
             toast.error("Từ chối thất bại!");
@@ -530,14 +590,14 @@ export default function GrantCertificate() {
                                                         onClick={() => handleApprove(cert.id)}
                                                         className="me-2"
                                                     >
-                                                        ✅ Phê duyệt
+                                                        Phê duyệt
                                                     </Button>
                                                     <Button
                                                         variant="danger"
                                                         size="sm"
                                                         onClick={() => handleReject(cert.id)}
                                                     >
-                                                        ❌ Từ chối
+                                                        Từ chối
                                                     </Button>
                                                 </>
                                             )}

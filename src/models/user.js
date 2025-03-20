@@ -11,7 +11,6 @@ const UserSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Trước khi lưu, tự động gán `id = _id`
 UserSchema.pre("save", function (next) {
     this.id = this._id.toString();
     next();

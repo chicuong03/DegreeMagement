@@ -38,7 +38,10 @@
     "src/app/api/universities/[id]/certificates/route.js",
     "src/app/api/degrees/route.js",
     "src/app/api/users/[id]/route.js",
-    "src/app/api/pinata/route.js"
+    "src/app/api/pinata/route.js",
+    "src/app/api/login/changepass/route.js",
+    "src/lib/session.js",
+    "src/app/api/login/route.js"
   ],
   "exclude": [
     "node_modules"

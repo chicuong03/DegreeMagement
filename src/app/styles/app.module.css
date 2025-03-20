@@ -7,3 +7,34 @@
     color: gray;
     border: 1px solid red;
 }
+
+.custom-table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background-color: #ffbb7d !important;
+}
+
+.custom-table thead th {
+    background-color: #ffaa55 !important;
+    color: #333 !important;
+    border: none !important;
+}
+
+.custom-table tbody tr:nth-child(odd) {
+    background-color: #ffffff !important;
+}
+
+.custom-table tbody tr:nth-child(even) {
+    background-color: #e6f0ff !important;
+}
+
+.custom-table tbody tr:hover {
+    background-color: #ffcc99 !important;
+}
+
+.custom-table td,
+.custom-table th {
+    border: none !important;
+}
