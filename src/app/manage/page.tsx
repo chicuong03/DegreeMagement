@@ -21,6 +21,8 @@ const AdminPage = () => {
     const [loading, setLoading] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [selectedRole, setSelectedRole] = useState<string>('');
+    const [searchTerm, setSearchTerm] = useState<string>('');
 
     //  Lấy danh sách user khi component mount
     useEffect(() => {
@@ -152,7 +154,7 @@ const AdminPage = () => {
         <div style={adminStyle.page}>
             <Container style={adminStyle.content}>
                 <Row>
-                    <Col md={3}>
+                    <Col md={2}>
                         <div style={adminStyle.sidebar}>
                             <h5>Management</h5>
                             <ul style={adminStyle.menu}>
@@ -173,7 +175,7 @@ const AdminPage = () => {
                                 </li>
                                 <li>
                                     <Link href="/degreehistory" className="btn btn-outline-primary btn-sm w-100">
-                                        History Degree
+                                        Reports & Statistics
                                     </Link>
                                 </li>
                                 <li>
@@ -191,53 +193,94 @@ const AdminPage = () => {
                         </div>
                     </Col>
 
-                    <Col md={9}>
-                        <h3>Users</h3>
-                        {loading ? (
-                            <div>Loading...</div>
-                        ) : (
-                            <Table striped bordered hover>
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Role</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {users
-                                        .sort((a, b) => b._id.localeCompare(a._id))
-                                        .map((user) => (
-                                            <tr key={user._id}>
-                                                <td>{user._id}</td>
-                                                <td>{user.name}</td>
-                                                <td>{user.email}</td>
-                                                <td>{user.role}</td>
-                                                <td className='text-center align-middle'>
-                                                    <Button
-                                                        variant="warning"
-                                                        size="sm"
-                                                        className="me-2"
-                                                        onClick={() => handleEditClick(user)}
-                                                    >
-                                                        Edit
-                                                    </Button>
-                                                    <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        onClick={() => handleDeleteUser(user._id)}
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                </tbody>
-                            </Table>
-                        )}
 
+                    <Col md={10}>
+                        <h3>Users</h3>
+                        <Row className="mb-3 align-items-end">
+                            <Col md={9}>
+                                <Form.Group controlId="formSearch">
+                                    <Form.Label>Tìm kiếm</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Tìm kiếm theo tên, email, ID"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col md={3}>
+                                <Form.Group controlId="formRoleFilter">
+                                    <Form.Label>Lọc theo vai trò</Form.Label>
+                                    <Form.Select
+                                        value={selectedRole}
+                                        onChange={(e) => setSelectedRole(e.target.value)}
+                                    >
+                                        <option value="">Tất cả vai trò</option>
+                                        <option value="admin">Quản trị</option>
+                                        <option value="university">Trường Học</option>
+                                        <option value="student">Học viên</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <div style={{
+                            maxHeight: '500px',
+                            overflowY: 'auto', // Cho phép cuộn theo trục Y
+                        }}>
+                            {loading ? (
+                                <div>Loading...</div>
+                            ) : (
+                                <Table striped bordered hover>
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Full Name</th>
+                                            <th>Username</th>
+                                            <th>Role</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {users
+                                            .filter(user =>
+                                                (!selectedRole || user.role === selectedRole) &&
+                                                (
+                                                    !searchTerm ||
+                                                    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                                    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                                    user._id.toLowerCase().includes(searchTerm.toLowerCase())
+                                                )
+                                            )
+                                            .sort((a, b) => b._id.localeCompare(a._id))
+                                            .map((user) => (
+                                                <tr key={user._id}>
+                                                    <td>{user._id}</td>
+                                                    <td>{user.name}</td>
+                                                    <td>{user.email}</td>
+                                                    <td>{user.role}</td>
+                                                    <td className='text-center align-middle'>
+                                                        <Button
+                                                            variant="warning"
+                                                            size="sm"
+                                                            className="me-2"
+                                                            onClick={() => handleEditClick(user)}
+                                                        >
+                                                            Edit
+                                                        </Button>
+                                                        <Button
+                                                            variant="danger"
+                                                            size="sm"
+                                                            onClick={() => handleDeleteUser(user._id)}
+                                                        >
+                                                            Delete
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                    </tbody>
+                                </Table>
+                            )}
+                        </div>
                         <h3>Thêm Người Dùng</h3>
                         <Form onSubmit={handleAddUser}>
                             <Row>
@@ -316,7 +359,7 @@ const AdminPage = () => {
                                 </Col>
                                 <Col md={6}>
                                     <Form.Group controlId="formEditEmail">
-                                        <Form.Label>Email</Form.Label>
+                                        <Form.Label>User name</Form.Label>
                                         <Form.Control
                                             type="email"
                                             placeholder="Nhập email"

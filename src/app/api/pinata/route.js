@@ -25,6 +25,8 @@ export async function POST(req) {
         const grade = formData.get('grade');
         const major = formData.get('major') || 'Không có dữ liệu';
         const studentAddress = formData.get('studentAddress');
+        const degreeType = formData.get('degreeType') || 'Không xác định';
+        const degreeNumber = formData.get('degreeNumber') || 'Không xác định';
 
         // Kiểm tra dữ liệu đầu vào
         if (!studentName || !university || !dateOfBirth || !graduationDate || !grade || !score) {
@@ -73,7 +75,7 @@ export async function POST(req) {
             // Tạo và upload metadata phù hợp với hợp đồng DegreeNFT
             const metadata = {
                 name: `Bằng tốt nghiệp của ${studentName}`,
-                description: `Xác nhận bằng cấp của: ${studentName} || Từ trường: ${university} || Ngày sinh: ${dateOfBirth} || Ngày tốt nghiệp: ${graduationDate} || Điểm: ${score} || Xếp loại: ${grade} || Chuyên ngành: ${major}`,
+                description: `Xác nhận bằng cấp của: ${studentName} - ${degreeNumber} || Từ trường: ${university} || Ngày sinh: ${dateOfBirth} || Ngày tốt nghiệp: ${graduationDate} || Điểm: ${score} || Xếp loại: ${grade} || Chuyên ngành: ${major}`,
                 image: `ipfs://${imageHash}`,
                 studentName,
                 university,
@@ -82,6 +84,8 @@ export async function POST(req) {
                 score,
                 grade,
                 major,
+                degreeType,
+                degreeNumber,
                 dateCreated: new Date().toISOString(),
                 attributes: [
                     {
@@ -111,7 +115,9 @@ export async function POST(req) {
                     {
                         trait_type: "Chuyên Ngành",
                         value: major
-                    }
+                    },
+                    { trait_type: "Loại Bằng Cấp", value: degreeType },
+                    { trait_type: "Số Hiệu Bằng Cấp", value: degreeNumber }
                 ]
             };
 

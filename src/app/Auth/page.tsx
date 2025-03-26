@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { Button, Col, Container, Form, Row, Tab, Tabs } from "react-bootstrap";
+import { Button, Col, Container, Form, Row, Spinner, Tab, Tabs } from "react-bootstrap";
 import { toast } from "react-toastify";
 
 const AuthPage = () => {
@@ -32,6 +32,9 @@ const AuthPage = () => {
         event.preventDefault();
         setLoading(true);
         setError("");
+
+        // Đợi 3 giây trước khi thực hiện đăng nhập
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
         try {
             const response = await fetch("/api/login", {
@@ -73,7 +76,7 @@ const AuthPage = () => {
             const response = await fetch("/api/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password, role: "student" }), // Default là student
+                body: JSON.stringify({ name, email, password, role: "student" }),
             });
 
             const data = await response.json();
@@ -94,6 +97,21 @@ const AuthPage = () => {
 
     return (
         <Container fluid style={authStyle.container}>
+            {loading && (
+                <div style={authStyle.overlay}>
+                    <div style={authStyle.spinnerContainer}>
+                        <Spinner animation="grow" variant="primary" />
+                        <Spinner animation="grow" variant="secondary" />
+                        <Spinner animation="grow" variant="success" />
+                        <Spinner animation="grow" variant="danger" />
+                        <Spinner animation="grow" variant="warning" />
+                        <Spinner animation="grow" variant="info" />
+                        <Spinner animation="grow" variant="light" />
+                        <Spinner animation="grow" variant="dark" />
+                        <p className="mt-2 text-white">Đang xử lý...</p>
+                    </div>
+                </div>
+            )}
             <Row className="justify-content-center align-items-center" style={authStyle.fullHeight}>
                 <Col xs={12} sm={10} md={8} lg={6} xl={5}>
                     <div style={authStyle.card}>
@@ -113,9 +131,9 @@ const AuthPage = () => {
                             <Tab eventKey="login" title="Đăng nhập">
                                 <Form onSubmit={handleLogin}>
                                     <Form.Group controlId="formLoginEmail" className="mb-4">
-                                        <Form.Label>Email</Form.Label>
+                                        <Form.Label>Số hiệu bằng cấp</Form.Label>
                                         <Form.Control
-                                            type="email"
+                                            type="text"
                                             placeholder="Nhập email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
@@ -155,9 +173,9 @@ const AuthPage = () => {
                                         />
                                     </Form.Group>
                                     <Form.Group controlId="formRegisterEmail" className="mb-4">
-                                        <Form.Label>Email</Form.Label>
+                                        <Form.Label>Số hiệu bằng cấp</Form.Label>
                                         <Form.Control
-                                            type="email"
+                                            type="text"
                                             placeholder="Nhập email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
@@ -200,11 +218,26 @@ const AuthPage = () => {
     );
 };
 
-const authStyle = {
+const authStyle: { [key: string]: React.CSSProperties } = {
     container: { backgroundColor: "#f8f9fa", minHeight: "100vh" },
     fullHeight: { height: "100vh" },
     card: { backgroundColor: "#fff", padding: "40px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)" },
     header: { marginBottom: "20px", fontSize: "28px", fontWeight: "bold", color: "#3b82f6" },
+    overlay: {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        zIndex: 9999,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    spinnerContainer: {
+        textAlign: "center"
+    }
 };
 
 export default AuthPage;

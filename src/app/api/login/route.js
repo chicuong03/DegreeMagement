@@ -9,9 +9,9 @@ function validateInput(email, password) {
   const errors = {};
 
 
-  if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-    errors.email = "Email không hợp lệ";
-  }
+  // if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+  //   errors.email = "Email không hợp lệ";
+  // }
 
 
   if (!password || password.length < 6) {
@@ -75,6 +75,14 @@ export async function POST(request) {
       sameSite: "strict",
       maxAge: 60 * 60 * 24,
     });
+
+    // Đưa degreeNumber vào cookie
+    response.cookies.set("degreeNumber", email, {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24, // 1 ngày
+    });
+
 
     // Set userName cookie 
     response.cookies.set("userName", encodeURIComponent(user.name), {

@@ -3,7 +3,7 @@
 import { getContract } from "@/lib/contract";
 import { ethers } from "ethers";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
+import { Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
 import { toast } from "react-toastify";
 type Certificate = {
     id: number;
@@ -16,7 +16,9 @@ type Certificate = {
     major: string;
     ipfsHash: string;
     issueDate: string;
-    status: "Pending" | "Approved" | "Rejected";
+    //status: "Pending" | "Approved" | "Rejected";
+    degreeType: string;
+    degreeNumber: string;
 };
 
 
@@ -28,7 +30,6 @@ declare global {
 
 export default function GrantCertificate() {
 
-    // sd cho pinata 
     const [formData, setFormData] = useState({
         studentName: "",
         university: "",
@@ -37,8 +38,10 @@ export default function GrantCertificate() {
         score: "",
         grade: "",
         major: "",
-        studentAddress: ""
+        degreeType: "",
+        degreeNumber: ""
     });
+
 
     const [certificates, setCertificates] = useState<Certificate[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -46,8 +49,10 @@ export default function GrantCertificate() {
     const [universities, setUniversities] = useState<{ id: number; name: string }[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
-
+    const [degreeTypes, setDegreeTypes] = useState<{ _id: string; degreetype_name: string }[]>([]);
     const [refreshData, setRefreshData] = useState(0);
+    const [showAddDegreeModal, setShowAddDegreeModal] = useState(false);
+    const [newDegreeTypeName, setNewDegreeTypeName] = useState("");
 
     // lưu nhật kí
     const saveAuditLog = async (degreeId: number, action: string) => {
@@ -146,7 +151,7 @@ export default function GrantCertificate() {
         try {
             setIsLoading(true);
 
-            const response = await fetch("/api/degrees");
+            const response = await fetch("/api/degreemongoDB");
             const data = await response.json();
 
             console.log("API Data:", data);
@@ -164,12 +169,10 @@ export default function GrantCertificate() {
         }
     }, []);
 
-    // Chỉ fetch dữ liệu khi component mount hoặc khi refreshData thay đổi
     useEffect(() => {
         fetchCertificates();
     }, [fetchCertificates, refreshData]);
 
-    // Tối ưu hóa fetchUniversities bằng useCallback
     const fetchUniversities = useCallback(async () => {
         try {
             const response = await fetch("/api/universities");
@@ -182,77 +185,37 @@ export default function GrantCertificate() {
         }
     }, []);
 
-    // Fetch universities chỉ khi component mount
     useEffect(() => {
         fetchUniversities();
     }, [fetchUniversities]);
 
-    const handleApprove = async (degreeId: number) => {
-        if (!window.ethereum) {
-            toast.error("Hãy kết nối MetaMask!");
-            return;
-        }
-        // Tìm tt sv
-        const degree = certificates.find(cert => cert.id === degreeId);
-        if (!degree) {
-            toast.error("Không tìm thấy thông tin bằng cấp!");
-            return;
-        }
+    // fetch loaij bawnfg
+    useEffect(() => {
+        const fetchDegreeTypes = async () => {
+            try {
+                const res = await fetch("/api/degreetype");
+                const data = await res.json();
+                setDegreeTypes(data);
+            } catch (error) {
+                console.error("Lỗi khi tải loại bằng:", error);
+                toast.error("Không thể tải loại bằng cấp!");
+            }
+        };
 
-        // Cần phải biết địa chỉ sinh viên để phê duyệt
-        const studentAddress = prompt("Nhập địa chỉ ví của sinh viên:");
-        if (!studentAddress) {
-            toast.error("Cần địa chỉ ví sinh viên để phê duyệt!");
-            return;
-        }
+        fetchDegreeTypes();
+    }, []);
 
-        setIsLoading(true);
-        try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const contract = getContract(provider).connect(signer);
-
-            // Gọi hàm approveDegree với địa chỉ sinh viên
-            const tx = await contract.approveDegree(degreeId, studentAddress);
-            await tx.wait();
-
-            toast.success("Phê duyệt thành công!");
-            setRefreshData(prev => prev + 1);
-            await saveAuditLog(degreeId, "APPROVED");
-
-        } catch (error) {
-            console.error(error);
-            toast.error("Phê duyệt thất bại!");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    //     const fetchUniversities = async () => {
-    //         try {
-    //             const response = await fetch("/api/universities");
-    //             if (!response.ok) throw new Error("Không thể tải danh sách trường");
-    //             const data = await response.json();
-    //             setUniversities(data);
-    //         } catch (error) {
-    //             console.error("Lỗi:", error);
-    //             toast.error("Không thể tải danh sách trường!");
-    //         }
-    //     };
-
-    //     fetchUniversities();
-    // }, []);
-
-    // Cấp bằng NFT trên Blockchain pinata
+    // Cấp bằng
     const handleGrantCertificate = async () => {
         if (!window.ethereum) {
             toast.error("Vui lòng kết nối MetaMask!");
             return;
         }
 
-        const { studentName, university, dateOfBirth, graduationDate, grade, score, major, studentAddress } = formData;
+        const { studentName, university, dateOfBirth, graduationDate, grade, score, major, degreeType, degreeNumber } = formData;
 
-        if (!studentName || !university || !dateOfBirth || !graduationDate || !grade || !score || !major || !studentAddress) {
+        // Kiểm tra tất cả thông tin có đầy đủ không
+        if (!studentName || !university || !dateOfBirth || !graduationDate || !grade || !score || !major || !degreeType || !degreeNumber) {
             toast.error("Vui lòng nhập đầy đủ thông tin!");
             return;
         }
@@ -265,7 +228,7 @@ export default function GrantCertificate() {
         setIsLoading(true);
 
         try {
-            // : Upload ảnh và metadata lên Pinata
+            //  Upload ảnh và metadata lên Pinata
             const pinataFormData = new FormData();
             pinataFormData.append("file", selectedFile);
             pinataFormData.append("studentName", studentName);
@@ -275,9 +238,9 @@ export default function GrantCertificate() {
             pinataFormData.append("grade", grade);
             pinataFormData.append("score", score);
             pinataFormData.append("major", major);
-            pinataFormData.append("studentAddress", studentAddress);
+            pinataFormData.append("degreeType", degreeType);
+            pinataFormData.append("degreeNumber", degreeNumber);
 
-            // Gửi request 
             const pinataResponse = await fetch("/api/pinata", {
                 method: "POST",
                 body: pinataFormData,
@@ -289,23 +252,22 @@ export default function GrantCertificate() {
             }
 
             // Lấy URI metadata từ response
-            const metadataUri = pinataData.metadataUri;
+            const { metadataUri, imageUri } = pinataData;
 
-            //  Kết nối với smart contract qua MetaMask
+            //  Kết nối với smart contract
             const provider = new ethers.providers.Web3Provider(window.ethereum);
-            await provider.send("eth_requestAccounts", []); // Yêu cầu kết nối MetaMask
+            await provider.send("eth_requestAccounts", []);
             const signer = provider.getSigner();
             const contract = getContract(provider).connect(signer);
 
+            const studentAddress = await signer.getAddress();
             toast.info("Đang tạo NFT trên blockchain, vui lòng xác nhận giao dịch trong MetaMask...");
 
-            //  Gọi hàm issueDegree từ smart contract
+            // Gọi hàm issueDegree từ smart contract
             const tx = await contract.issueDegree(metadataUri, studentAddress);
 
-            // Hiển thị thông báo đang đợi xác nhận giao dịch
             toast.info("Đang đợi xác nhận giao dịch từ blockchain...");
 
-            // Đợi xn
             const receipt = await tx.wait();
 
             toast.success(`Cấp bằng thành công! Transaction hash: ${receipt.transactionHash}`);
@@ -316,10 +278,58 @@ export default function GrantCertificate() {
                 throw new Error("Không tìm thấy sự kiện DegreeIssued!");
             }
 
-            const degreeId = event.args.degreeId.toNumber(); // Chuyển sang số nguyên
+            const degreeId = event.args.degreeId.toNumber();
             console.log("ID bằng cấp:", degreeId);
-            await saveAuditLog(degreeId, "GRANTED");
 
+            // Tạo mảng attributes từ dữ liệu form
+            const attributes = [
+                { trait_type: "Tên sinh viên", value: studentName },
+                { trait_type: "Trường đại học", value: university },
+                { trait_type: "Ngày sinh", value: dateOfBirth },
+                { trait_type: "Ngày tốt nghiệp", value: graduationDate },
+                { trait_type: "Điểm", value: score },
+                { trait_type: "Xếp loại", value: grade },
+                { trait_type: "Chuyên ngành", value: major || "Không có dữ liệu" },
+                { trait_type: "Loại bằng", value: degreeType },
+                { trait_type: "Số hiệu", value: degreeNumber }
+            ];
+
+            // Lưu thông tin vào MongoDB sau khi đã thêm thành công vào blockchain
+            const degreeData = {
+                studentName,
+                university,
+                dateOfBirth,
+                graduationDate,
+                score,
+                grade,
+                major: major || "Không có dữ liệu",
+                degreeType,
+                degreeNumber,
+                nftId: degreeId.toString(),
+                imageUri,
+                metadataUri,
+                attributes
+            };
+
+            // Gọi API để lưu dữ liệu vào MongoDB
+            const mongoResponse = await fetch("/api/degreemongoDB", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(degreeData),
+            });
+
+            const mongoData = await mongoResponse.json();
+            if (!mongoData.success) {
+                console.error("Lỗi khi lưu vào MongoDB:", mongoData.message);
+                toast.warning("Đã cấp bằng trên blockchain nhưng chưa lưu được vào cơ sở dữ liệu!");
+            } else {
+                toast.success("Đã lưu thông tin bằng cấp vào cơ sở dữ liệu!");
+            }
+
+            // Log Audit
+            await saveAuditLog(degreeId, "GRANTED");
 
             // Reset form
             setFormData({
@@ -330,17 +340,17 @@ export default function GrantCertificate() {
                 score: "",
                 grade: "",
                 major: "",
-                studentAddress: ""
+                degreeType: "",
+                degreeNumber: "",
             });
             setSelectedFile(null);
-
 
             // Cập nhật danh sách bằng cấp
             setRefreshData(prev => prev + 1);
 
         } catch (error) {
             console.error("Lỗi khi cấp bằng:", error);
-            toast.error(`Cấp bằng thất bại:`);
+            toast.error(`Cấp bằng thất bại`);
         } finally {
             setIsLoading(false);
         }
@@ -353,30 +363,33 @@ export default function GrantCertificate() {
         }
     };
 
-    // Từ chối bằng cấp
-    const handleReject = async (degreeId: number) => {
-        if (!window.ethereum) {
-            toast.error("Hãy kết nối MetaMask!");
-            return;
-        }
+    // thêm laoijk bằng
+    const handleAddDegreeType = async () => {
+        if (!newDegreeTypeName.trim()) return;
 
-        setIsLoading(true);
         try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const contract = getContract(provider).connect(signer);
+            const res = await fetch("/api/degreetype", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ degreetype_name: newDegreeTypeName }),
+            });
 
-            const tx = await contract.rejectDegree(degreeId);
-            await tx.wait();
+            const data = await res.json();
 
-            toast.success("Từ chối thành công!");
-            await saveAuditLog(degreeId, "REJECTED");
-            setRefreshData(prev => prev + 1);
+            if (res.ok) {
+                toast.success("Đã thêm loại bằng cấp mới!");
+                setDegreeTypes((prev) => [...prev, data]); // cập nhật dropdown
+                setFormData((prev) => ({ ...prev, degreeType: data.degreetype_name }));
+                setShowAddDegreeModal(false);
+                setNewDegreeTypeName("");
+            } else {
+                toast.error(data.message || data.error || "Thêm thất bại!");
+            }
         } catch (error) {
-            console.error(error);
-            toast.error("Từ chối thất bại!");
-        } finally {
-            setIsLoading(false);
+            console.error("Lỗi khi thêm loại bằng:", error);
+            toast.error("Không thể thêm loại bằng mới!");
         }
     };
 
@@ -442,7 +455,7 @@ export default function GrantCertificate() {
                 <Row>
                     <Col md={4}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Ngày tốt nghiệp *</Form.Label>
+                            <Form.Label>Ngày Cấp *</Form.Label>
                             <Form.Control
                                 type="date"
                                 value={formData.graduationDate}
@@ -487,6 +500,73 @@ export default function GrantCertificate() {
                 <Row>
                     <Col md={6}>
                         <Form.Group className="mb-3">
+                            <Form.Label>Loại Bằng Cấp *</Form.Label>
+                            <Form.Select
+                                value={formData.degreeType}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === "__add_new__") {
+                                        setShowAddDegreeModal(true);
+                                    } else {
+                                        setFormData({ ...formData, degreeType: value });
+                                    }
+                                }}
+                                required
+                            >
+                                <option value="">Chọn loại bằng cấp</option>
+                                {degreeTypes.map((type) => (
+                                    <option key={type._id} value={type.degreetype_name}>
+                                        {type.degreetype_name}
+                                    </option>
+                                ))}
+                                <option value="__add_new__">➕ Thêm loại bằng cấp mới...</option>
+                            </Form.Select>
+                        </Form.Group>
+                    </Col>
+
+                    {/* Modal thêm loại bằng cấp */}
+                    <Modal show={showAddDegreeModal} onHide={() => setShowAddDegreeModal(false)} centered>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Thêm Loại Bằng Cấp</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form.Group>
+                                <Form.Label>Tên loại bằng cấp</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="VD: Bằng Thạc sĩ"
+                                    value={newDegreeTypeName}
+                                    onChange={(e) => setNewDegreeTypeName(e.target.value)}
+                                />
+                            </Form.Group>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={() => setShowAddDegreeModal(false)}>
+                                Hủy
+                            </Button>
+                            <Button variant="primary" onClick={handleAddDegreeType}>
+                                Thêm
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
+
+                    {/* Thêm trường Số Hiệu Bằng Cấp */}
+                    <Col md={6}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Số hiệu bằng cấp *</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={formData.degreeNumber}
+                                onChange={(e) => setFormData({ ...formData, degreeNumber: e.target.value })}
+                                required
+                            />
+                        </Form.Group>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col md={6}>
+                        <Form.Group className="mb-3">
                             <Form.Label>Ngành học *</Form.Label>
                             <Form.Control
                                 type="text"
@@ -496,21 +576,8 @@ export default function GrantCertificate() {
                             />
                         </Form.Group>
                     </Col>
-                    <Col md={6}>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Địa chỉ ví sinh viên *</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={formData.studentAddress}
-                                onChange={(e) => setFormData({ ...formData, studentAddress: e.target.value })}
-                                required
-                            />
-                        </Form.Group>
-                    </Col>
-                </Row>
 
-                <Row>
-                    <Col md={12}>
+                    <Col md={6}>
                         <Form.Group className="mb-3">
                             <Form.Label>Ảnh NFT</Form.Label>
                             <Form.Control type="file" accept="image/*" onChange={handleFileChange} />
@@ -538,16 +605,13 @@ export default function GrantCertificate() {
                     <thead>
                         <tr>
                             <th className="text-center align-middle">STT</th>
-                            <th className="text-center align-middle">Mã NFT</th>
+                            <th className="text-center align-middle">Số hiệu</th>
                             <th className="text-center align-middle">Sinh Viên</th>
                             <th className="text-center align-middle">Trường</th>
                             <th className="text-center align-middle">Ngành</th>
                             <th className="text-center align-middle">Điểm</th>
                             <th className="text-center align-middle">Xếp Loại</th>
-                            <th className="text-center align-middle">Ngày Tốt Nghiệp</th>
                             <th className="text-center align-middle">Ngày Cấp</th>
-                            <th className="text-center align-middle">Trạng Thái</th>
-                            <th className="text-center align-middle">Hành Động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -558,49 +622,14 @@ export default function GrantCertificate() {
                                 .map((cert, index) => (
                                     <tr key={cert?.id}>
                                         <td className="text-center align-middle">{index + 1}</td>
-                                        <td className="text-center align-middle">{cert?.id || "N/A"}</td>
+                                        <td className="text-center align-middle">{cert?.degreeNumber || "N/A"}</td>
                                         <td className="text-center align-middle">{cert?.studentName || "N/A"}</td>
                                         <td className="text-center align-middle">{cert?.university || "N/A"}</td>
                                         <td className="text-center align-middle">{cert?.major || "N/A"}</td>
                                         <td className="text-center align-middle">{cert?.score !== undefined ? cert.score : "N/A"}</td>
                                         <td className="text-center align-middle">{cert?.grade || "N/A"}</td>
                                         <td className="text-center align-middle">
-                                            {cert?.graduationDate ? new Date(cert.graduationDate).toLocaleDateString("vi-VN") : "N/A"}
-                                        </td>
-                                        <td className="text-center align-middle">
-                                            {cert?.issueDate && Number(cert.issueDate) > 0
-                                                ? new Date(Number(cert.issueDate) * 1000).toLocaleDateString("vi-VN")
-                                                : "N/A"}
-                                        </td>
-                                        <td className={`text-center align-middle 
-                                ${cert?.status === "Approved"
-                                                ? "text-success"
-                                                : cert?.status === "Rejected"
-                                                    ? "text-danger"
-                                                    : "text-warning"}`}
-                                        >
-                                            {cert?.status || "N/A"}
-                                        </td>
-                                        <td className="text-center align-middle">
-                                            {cert?.status === "Pending" && (
-                                                <>
-                                                    <Button
-                                                        variant="success"
-                                                        size="sm"
-                                                        onClick={() => handleApprove(cert.id)}
-                                                        className="me-2"
-                                                    >
-                                                        Phê duyệt
-                                                    </Button>
-                                                    <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        onClick={() => handleReject(cert.id)}
-                                                    >
-                                                        Từ chối
-                                                    </Button>
-                                                </>
-                                            )}
+                                            {cert.graduationDate ? new Date(cert.graduationDate).toLocaleDateString("vi-VN") : "N/A"}
                                         </td>
                                     </tr>
                                 ))

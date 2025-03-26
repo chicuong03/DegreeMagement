@@ -2,7 +2,7 @@
 import { ethers } from 'ethers';
 
 
-export const contractAddress = '0x9227241afb4F160d2d6460dACB0151b60e25e55A';
+export const contractAddress = '0x288887A325a73497912f34e126A47A5383cE7f69';
 
 export const contractABI = [
     {
@@ -212,19 +212,6 @@ export const contractABI = [
                 "internalType": "uint256",
                 "name": "degreeId",
                 "type": "uint256"
-            }
-        ],
-        "name": "DegreeApproved",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "uint256",
-                "name": "degreeId",
-                "type": "uint256"
             },
             {
                 "indexed": true,
@@ -252,26 +239,7 @@ export const contractABI = [
                 "type": "uint256"
             }
         ],
-        "name": "DegreeRejected",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "uint256",
-                "name": "degreeId",
-                "type": "uint256"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "newOwner",
-                "type": "address"
-            }
-        ],
-        "name": "DegreeTransferred",
+        "name": "DegreeRevoked",
         "type": "event"
     },
     {
@@ -384,24 +352,6 @@ export const contractABI = [
     {
         "inputs": [
             {
-                "internalType": "uint256",
-                "name": "degreeId",
-                "type": "uint256"
-            },
-            {
-                "internalType": "address",
-                "name": "student",
-                "type": "address"
-            }
-        ],
-        "name": "approveDegree",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
                 "internalType": "address",
                 "name": "universityAddress",
                 "type": "address"
@@ -465,7 +415,7 @@ export const contractABI = [
                 "type": "string"
             },
             {
-                "internalType": "enum DegreeNFT.DegreeStatus",
+                "internalType": "enum ManagementDegreeNFT.DegreeStatus",
                 "name": "status",
                 "type": "uint8"
             },
@@ -518,7 +468,7 @@ export const contractABI = [
                 "type": "string"
             },
             {
-                "internalType": "enum DegreeNFT.DegreeStatus",
+                "internalType": "enum ManagementDegreeNFT.DegreeStatus",
                 "name": "",
                 "type": "uint8"
             },
@@ -540,7 +490,7 @@ export const contractABI = [
         "inputs": [
             {
                 "internalType": "address",
-                "name": "student",
+                "name": "owner",
                 "type": "address"
             }
         ],
@@ -643,6 +593,13 @@ export const contractABI = [
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "uint256",
@@ -650,14 +607,7 @@ export const contractABI = [
                 "type": "uint256"
             }
         ],
-        "name": "rejectDegree",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "renounceOwnership",
+        "name": "revokeDegree",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

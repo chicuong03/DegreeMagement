@@ -301,7 +301,7 @@ const ManageUniversitiesPage = () => {
         <div style={adminStyle.page}>
             <Container style={adminStyle.content}>
                 <Row>
-                    <Col md={3}>
+                    <Col md={2}>
                         <div style={adminStyle.sidebar}>
                             <h5>Management</h5>
                             <ul style={adminStyle.menu}>
@@ -322,7 +322,7 @@ const ManageUniversitiesPage = () => {
                                 </li>
                                 <li>
                                     <Link href="/degreehistory" className="btn btn-outline-primary btn-sm w-100">
-                                        History Degree
+                                        Reports & Statistics
                                     </Link>
                                 </li>
                                 <li>
@@ -340,7 +340,7 @@ const ManageUniversitiesPage = () => {
                         </div>
                     </Col>
 
-                    <Col md={9}>
+                    <Col md={10}>
                         <div className="d-flex justify-content-between align-items-center mb-3">
                             <h3>Quản Lý Trường</h3>
                             <div className="d-flex gap-2">

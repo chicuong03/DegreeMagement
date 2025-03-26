@@ -98,7 +98,7 @@ export default function UniversityKYCManagement() {
     return (
         <Container>
             <Row>
-                <Col md={3}>
+                <Col md={2}>
                     <div style={adminStyle.sidebar}>
                         <h5>Management</h5>
                         <ul style={adminStyle.menu}>
@@ -119,7 +119,7 @@ export default function UniversityKYCManagement() {
                             </li>
                             <li>
                                 <Link href="/degreehistory" className="btn btn-outline-primary btn-sm w-100">
-                                    History Degree
+                                    Reports & Statistics
                                 </Link>
                             </li>
                             <li>
@@ -136,7 +136,7 @@ export default function UniversityKYCManagement() {
                         </ul>
                     </div>
                 </Col>
-                <Col md={9}>
+                <Col md={10}>
                     <Card className="mt-4">
                         <Card.Header>
                             <Card.Title>Quản Lý KYC Trường Học</Card.Title>

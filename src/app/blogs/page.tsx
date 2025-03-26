@@ -289,7 +289,7 @@ export default function BlogPage() {
 
     return (
         <Row>
-            <Col md={3}>
+            <Col md={2}>
                 <div style={adminStyle.sidebar}>
                     <h5>Management</h5>
                     <ul style={adminStyle.menu}>
@@ -310,7 +310,7 @@ export default function BlogPage() {
                         </li>
                         <li>
                             <Link href="/degreehistory" className="btn btn-outline-primary btn-sm w-100">
-                                History Degree
+                                Reports & Statistics
                             </Link>
                         </li>
                         <li>
@@ -327,7 +327,7 @@ export default function BlogPage() {
                     </ul>
                 </div>
             </Col>
-            <Col md={9}>
+            <Col md={10}>
                 <div className="min-h-screen bg-gray-100">
                     <div className="container mx-auto px-4 py-8 max-w-5xl">
 

@@ -139,7 +139,7 @@ const UniversityKYCPage = () => {
         <div style={kycStyles.page}>
             <div style={kycStyles.container}>
                 <div style={kycStyles.header}>
-                    <h2 style={{ margin: 0, fontSize: '24px' }}>🏫 Đăng Ký KYC Trường Học</h2>
+                    <h2 style={{ margin: 0, fontSize: '24px' }}>Đăng Ký KYC Trường Học</h2>
                     <p style={{ marginTop: '10px', color: '#bae6fd' }}>
                         Vui lòng nhập đầy đủ thông tin để đăng ký xác minh
                     </p>
@@ -238,10 +238,11 @@ const UniversityKYCPage = () => {
 
                     <div style={kycStyles.formRow}>
                         <div style={kycStyles.formColumn}>
-                            <label style={kycStyles.label}>📜 Giấy Phép Hoạt Động (link Google Drive)</label>
+                            <label style={kycStyles.label}>📜 Giấy Phép Hoạt Động</label>
                             <input
                                 type="text"
                                 name="license"
+                                placeholder="link giấy phép hoạt động"
                                 value={formData.license}
                                 onChange={handleChange}
                                 required
@@ -249,10 +250,11 @@ const UniversityKYCPage = () => {
                             />
                         </div>
                         <div style={kycStyles.formColumn}>
-                            <label style={kycStyles.label}>🆔 CCCD Đại Diện (link Google Drive chứa Ảnh)</label>
+                            <label style={kycStyles.label}>🆔 CCCD Đại Diện </label>
                             <input
                                 type="text"
                                 name="idCard"
+                                placeholder="link Google Drive chứa Ảnh"
                                 value={formData.idCard}
                                 onChange={handleChange}
                                 required
