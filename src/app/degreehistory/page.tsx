@@ -7,7 +7,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import Link from 'next/link';
 import { useEffect, useState } from "react";
-import { Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
+import { Button, Card, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
 import { toast } from "react-toastify";
 // Đăng ký các thành phần cần thiết
@@ -25,6 +25,7 @@ type Certificate = {
     degreeType: string;
     metadataUri: string;
     issueDate: string | number;
+    nftId: string;
 };
 
 const DegreeHistoryPage = () => {
@@ -35,7 +36,8 @@ const DegreeHistoryPage = () => {
     const [selectedDegree, setSelectedDegree] = useState<Certificate | null>(null);
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [selectedChart, setSelectedChart] = useState("monthly");
-
+    const totalUniversities = new Set(degreeHistory.map(degree => degree.university)).size;
+    const totalIssuedDegrees = degreeHistory.length;
 
     async function fetchCertificates() {
         try {
@@ -454,8 +456,33 @@ const DegreeHistoryPage = () => {
                 </Col>
 
                 <Col md={10}>
-                    <h3 className="mb-4 mt-4">📜 Lịch Sử Cấp Bằng</h3>
-
+                    <h3 className="mb-4 mt-4">📜 Reports & Statisticsg</h3>
+                    <Row className="mb-4">
+                        <Col md={4}>
+                            <Card>
+                                <Card.Body className="text-center ">
+                                    <Card.Title>🏫 Tổng Số Trường Đại Học Đã Đăng Kí</Card.Title>
+                                    <h2 className="text-info">{totalUniversities}</h2>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                        <Col md={4}>
+                            <Card>
+                                <Card.Body className="text-center">
+                                    <Card.Title>📜 Tổng Số Bằng Cấp Đã Phát Hành</Card.Title>
+                                    <h2 className="text-primary">{totalIssuedDegrees}</h2>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                        <Col md={4}>
+                            <Card>
+                                <Card.Body className="text-center">
+                                    <Card.Title>📊 Trung Bình Bằng Cấp/Trường</Card.Title>
+                                    <h2 className="text-success">{(totalIssuedDegrees / totalUniversities).toFixed(2)}</h2>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    </Row>
                     <div style={{ position: "relative" }}>
                         <Form.Control
                             type="text"
@@ -544,6 +571,7 @@ const DegreeHistoryPage = () => {
                         </tbody>
                     </Table>
 
+
                     <div>
                         <h4>📊 Lựa Chọn Thống Kê</h4>
                         <Form.Select
@@ -586,27 +614,59 @@ const DegreeHistoryPage = () => {
                     </div>
                 </Col>
             </Row>
+
             <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
-                <Modal.Header closeButton>
-                    <Modal.Title>📜 Chi Tiết Bằng Cấp</Modal.Title>
+                <Modal.Header closeButton className="bg-primary text-white">
+                    <Modal.Title className="w-100 text-center">Chi Tiết Bằng Cấp</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     {selectedDegree ? (
-                        <div>
-                            <p><strong>🆔 Mã Bằng Cấp:</strong> {selectedDegree.degreeNumber}</p>
-                            <p><strong>👨‍🎓 Tên Sinh Viên:</strong> {selectedDegree.studentName}</p>
-                            <p><strong>📖 Chuyên Ngành:</strong> {selectedDegree.major}</p>
-                            <p><strong>🏫 Trường Đại Học:</strong> {selectedDegree.university}</p>
-                            <p><strong>📅 Ngày Cấp:</strong> {formatDate(selectedDegree.graduationDate)}</p>
-                            <p><strong>🔢 Điểm Số:</strong> {selectedDegree.score}</p>
-                            <p><strong>📅 Ngày Sinh:</strong> {selectedDegree.dateOfBirth}</p>
-                            <p><strong>🛅 ipfsHash:</strong> {selectedDegree.metadataUri}</p>
+                        <div className="row g-3">
+                            <div className="col-md-6">
+                                <p><strong>Mã Bằng Cấp:</strong> {selectedDegree.degreeNumber}</p>
+                            </div>
+                            <div className="col-md-6">
+                                <p><strong>Tên Sinh Viên:</strong> {selectedDegree.studentName}</p>
+                            </div>
+                            <div className="col-md-6">
+                                <p><strong>Chuyên Ngành:</strong> {selectedDegree.major}</p>
+                            </div>
+                            <div className="col-md-6">
+                                <p><strong>Trường Đại Học:</strong> {selectedDegree.university}</p>
+                            </div>
+                            <div className="col-md-6">
+                                <p><strong>Ngày Cấp:</strong> {formatDate(selectedDegree.graduationDate)}</p>
+                            </div>
+                            <div className="col-md-6">
+                                <p><strong>Điểm Số:</strong> {selectedDegree.score}</p>
+                            </div>
+                            <div className="col-md-6">
+                                <p><strong>Ngày Sinh:</strong> {selectedDegree.dateOfBirth}</p>
+                            </div>
+                            <div className="col-md-6">
+                                <p><strong>NFT:</strong>
+                                    <a
+                                        href={`https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69?a=${selectedDegree.nftId}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-primary ml-2"
+                                    >
+                                        Xem trên CoinEx Blockchain
+                                    </a>
+                                </p>
+                            </div>
                         </div>
                     ) : (
-                        <p>Không có dữ liệu.</p>
+                        <p className="text-center text-danger">Không có dữ liệu.</p>
                     )}
                 </Modal.Body>
-                <Modal.Footer>
+                <Modal.Footer className="d-flex justify-content-between">
+                    <Button
+                        variant="secondary"
+                        onClick={() => setShowDetailModal(false)}
+                    >
+                        Đóng
+                    </Button>
                     <Button
                         variant="primary"
                         onClick={() => {
@@ -617,13 +677,10 @@ const DegreeHistoryPage = () => {
                             }
                         }}
                     >
-                        📄 Xuất PDF
+                        Xuất PDF
                     </Button>
-
-                    <Button variant="secondary" onClick={() => setShowDetailModal(false)}>Đóng</Button>
                 </Modal.Footer>
             </Modal>
-
         </Container>
     );
 };

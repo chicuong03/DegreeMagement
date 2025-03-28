@@ -1,4 +1,4 @@
-//api/degreemongoDB/route.js
+
 import { connectToDatabase } from '@/lib/mongodb';
 import Degree from '@/models/DegreeSchema';
 import { NextResponse } from 'next/server';
@@ -97,13 +97,11 @@ export async function POST(request) {
 
 export async function GET(req) {
     try {
-        // Kết nối tới database MongoDB
         await connectToDatabase();
 
-        // Tìm tất cả bằng cấp từ MongoDB (không cần điều kiện tìm kiếm)
+        // Tìm tất cả bằng cấp từ MongoDB
         const degrees = await Degree.find().exec();
 
-        // Kiểm tra nếu không có kết quả
         if (!degrees.length) {
             return NextResponse.json({
                 success: false,

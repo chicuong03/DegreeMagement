@@ -19,8 +19,9 @@ type Certificate = {
     //status: "Pending" | "Approved" | "Rejected";
     degreeType: string;
     degreeNumber: string;
+    imageUri: string;
+    nftId: string;
 };
-
 
 declare global {
     interface Window {
@@ -53,6 +54,8 @@ export default function GrantCertificate() {
     const [refreshData, setRefreshData] = useState(0);
     const [showAddDegreeModal, setShowAddDegreeModal] = useState(false);
     const [newDegreeTypeName, setNewDegreeTypeName] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
 
     // lưu nhật kí
     const saveAuditLog = async (degreeId: number, action: string) => {
@@ -97,7 +100,6 @@ export default function GrantCertificate() {
         }
     };
 
-
     const connectWallet = async () => {
         if (!window.ethereum) {
             toast.error("Bạn cần cài đặt MetaMask!");
@@ -136,7 +138,7 @@ export default function GrantCertificate() {
         return "Fail";
     };
 
-    // Tự động cập nhật xếp loại khi nhập điểm
+    // cập nhật xếp loại khi nhập điểm
     useEffect(() => {
         if (formData.score) {
             setFormData((prev) => ({
@@ -214,7 +216,7 @@ export default function GrantCertificate() {
 
         const { studentName, university, dateOfBirth, graduationDate, grade, score, major, degreeType, degreeNumber } = formData;
 
-        // Kiểm tra tất cả thông tin có đầy đủ không
+        // Kiểm tra tất cả thông tin 
         if (!studentName || !university || !dateOfBirth || !graduationDate || !grade || !score || !major || !degreeType || !degreeNumber) {
             toast.error("Vui lòng nhập đầy đủ thông tin!");
             return;
@@ -228,7 +230,7 @@ export default function GrantCertificate() {
         setIsLoading(true);
 
         try {
-            //  Upload ảnh và metadata lên Pinata
+            //  Upload  metadata lên Pinata
             const pinataFormData = new FormData();
             pinataFormData.append("file", selectedFile);
             pinataFormData.append("studentName", studentName);
@@ -251,10 +253,9 @@ export default function GrantCertificate() {
                 throw new Error(pinataData.error || "Không thể upload lên Pinata");
             }
 
-            // Lấy URI metadata từ response
+            // Lấy URI 
             const { metadataUri, imageUri } = pinataData;
 
-            //  Kết nối với smart contract
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             await provider.send("eth_requestAccounts", []);
             const signer = provider.getSigner();
@@ -263,7 +264,7 @@ export default function GrantCertificate() {
             const studentAddress = await signer.getAddress();
             toast.info("Đang tạo NFT trên blockchain, vui lòng xác nhận giao dịch trong MetaMask...");
 
-            // Gọi hàm issueDegree từ smart contract
+            // Gọi hàm issueDegree 
             const tx = await contract.issueDegree(metadataUri, studentAddress);
 
             toast.info("Đang đợi xác nhận giao dịch từ blockchain...");
@@ -294,7 +295,6 @@ export default function GrantCertificate() {
                 { trait_type: "Số hiệu", value: degreeNumber }
             ];
 
-            // Lưu thông tin vào MongoDB sau khi đã thêm thành công vào blockchain
             const degreeData = {
                 studentName,
                 university,
@@ -311,7 +311,7 @@ export default function GrantCertificate() {
                 attributes
             };
 
-            // Gọi API để lưu dữ liệu vào MongoDB
+            //  MongoDB
             const mongoResponse = await fetch("/api/degreemongoDB", {
                 method: "POST",
                 headers: {
@@ -393,9 +393,16 @@ export default function GrantCertificate() {
         }
     };
 
+    //lọc
+    const filteredCertificates = certificates.filter((cert) =>
+        Object.values(cert).some((value) =>
+            String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    );
+
     return (
         <Container>
-            <h1 className="text-center mb-4">Cấp Bằng Đại Học</h1>
+            <h1 className="text-center mb-4 text-primary mt-3">Cấp Bằng Đại Học</h1>
 
             {/* Kết nối MetaMask */}
             <div className="d-flex justify-content-end mb-3">
@@ -596,27 +603,34 @@ export default function GrantCertificate() {
             </Form>
 
             {/* Danh sách bằng cấp */}
-            <h2 className="mt-5 text-center">Danh Sách Bằng Cấp</h2>
-
+            <h3 className="mt-5 text-primary">Danh Sách Bằng Cấp</h3>
+            <Form.Control
+                type="text"
+                placeholder="Tìm kiếm bằng cấp..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="mb-3"
+            />
             {isLoading ? (
                 <p className="text-center">Đang tải dữ liệu...</p>
             ) : (
                 <Table striped bordered hover className="mt-3">
-                    <thead>
+                    <thead >
                         <tr>
-                            <th className="text-center align-middle">STT</th>
-                            <th className="text-center align-middle">Số hiệu</th>
-                            <th className="text-center align-middle">Sinh Viên</th>
-                            <th className="text-center align-middle">Trường</th>
-                            <th className="text-center align-middle">Ngành</th>
-                            <th className="text-center align-middle">Điểm</th>
-                            <th className="text-center align-middle">Xếp Loại</th>
-                            <th className="text-center align-middle">Ngày Cấp</th>
+                            <th style={{ background: '#ff9940' }} className="text-center align-middle">STT</th>
+                            <th style={{ background: '#ff9940' }} className="text-center align-middle">Số hiệu</th>
+                            <th style={{ background: '#ff9940' }} className="text-center align-middle">Sinh Viên</th>
+                            <th style={{ background: '#ff9940' }} className="text-center align-middle">Trường</th>
+                            <th style={{ background: '#ff9940' }} className="text-center align-middle">Ngành</th>
+                            <th style={{ background: '#ff9940' }} className="text-center align-middle">Điểm</th>
+                            <th style={{ background: '#ff9940' }} className="text-center align-middle">Xếp Loại</th>
+                            <th style={{ background: '#ff9940' }} className="text-center align-middle">Ngày Cấp</th>
+                            <th style={{ background: '#ff9940' }} className="text-center align-middle">Chi tiết</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {Array.isArray(certificates) && certificates.length > 0 ? (
-                            certificates
+                        {Array.isArray(filteredCertificates) && filteredCertificates.length > 0 ? (
+                            filteredCertificates
                                 .slice()
                                 .sort((a, b) => (Number(b.issueDate) || 0) - (Number(a.issueDate) || 0))
                                 .map((cert, index) => (
@@ -631,6 +645,15 @@ export default function GrantCertificate() {
                                         <td className="text-center align-middle">
                                             {cert.graduationDate ? new Date(cert.graduationDate).toLocaleDateString("vi-VN") : "N/A"}
                                         </td>
+                                        <td className="text-center align-middle">
+                                            <Button
+                                                variant="info"
+                                                size="sm"
+                                                onClick={() => setSelectedCertificate(cert)}
+                                            >
+                                                Xem
+                                            </Button>
+                                        </td>
                                     </tr>
                                 ))
                         ) : (
@@ -643,6 +666,95 @@ export default function GrantCertificate() {
                     </tbody>
                 </Table>
             )}
+            <Modal show={!!selectedCertificate} onHide={() => setSelectedCertificate(null)} size="xl">
+                <Modal.Header closeButton>
+                    <Modal.Title>Chi Tiết Bằng Cấp</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {selectedCertificate && (
+                        <div style={{
+                            background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                            padding: '20px',
+                            borderRadius: '10px'
+                        }}>
+                            <Row>
+                                <Col md={8}>
+                                    <div style={{
+                                        backgroundColor: 'white ',
+                                        borderRadius: '15px',
+                                        padding: '20px',
+                                        boxShadow: '5px 10px 10px rgba(0,0,0,0.2)'
+                                    }}>
+                                        <h2 className="text-center mb-4 text-primary" style={{ color: '#2c3e50' }}>
+                                            {selectedCertificate.university}
+                                        </h2>
+                                        <Row>
+                                            <Col md={6}>
+                                                <p><strong>Sinh viên:</strong> {selectedCertificate.studentName}</p>
+                                                <p><strong>Ngày sinh:</strong> {selectedCertificate.dateOfBirth}</p>
+                                                <p><strong>Trường:</strong> {selectedCertificate.university}</p>
+                                                <p><strong>Ngành học:</strong> {selectedCertificate.major}</p>
+                                                <p><strong>NFT:</strong> <a
+                                                    href={`https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69?a=${selectedCertificate.nftId}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{
+                                                        color: '#3498db',
+                                                        textDecoration: 'none',
+                                                        fontSize: '0.9rem'
+                                                    }}
+                                                >
+                                                    Xem trên CoinEx Blockchain
+                                                </a></p>
+                                            </Col>
+                                            <Col md={6}>
+                                                <p><strong>Điểm:</strong> {selectedCertificate.score}</p>
+                                                <p><strong>Xếp loại:</strong> {selectedCertificate.grade}</p>
+                                                <p><strong>Ngày cấp:</strong> {selectedCertificate.graduationDate}</p>
+                                                <p><strong>Loại bằng:</strong> {selectedCertificate.degreeType}</p>
+                                                <p><strong >Số hiệu:</strong> <span style={{
+                                                    backgroundColor: '#f1f2f6',
+                                                    padding: '5px 10px',
+                                                    borderRadius: '5px',
+                                                    fontSize: '0.9rem',
+                                                    color: '#cc0000',
+                                                    fontWeight: 'bold',
+                                                    border: '1px solid #dfe4ea'
+                                                }}> {selectedCertificate.degreeNumber} </span></p>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                </Col>
+                                <Col md={4}>
+                                    {selectedCertificate.imageUri && (
+                                        <div style={{
+                                            border: '2px solid #e0e6ed',
+                                            borderRadius: '10px',
+                                            overflow: 'hidden',
+                                            boxShadow: '5px 10px 10px rgba(0,0,0,0.2)'
+                                        }}>
+                                            <img
+                                                src={selectedCertificate.imageUri.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                                                alt="Ảnh bằng cấp"
+                                                style={{
+                                                    width: '100%',
+                                                    height: 'auto',
+                                                    objectFit: 'cover'
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </Col>
+                            </Row>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setSelectedCertificate(null)}>
+                        Đóng
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
         </Container>
     );

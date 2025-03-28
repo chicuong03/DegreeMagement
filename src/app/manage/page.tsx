@@ -2,7 +2,7 @@
 import bcrypt from 'bcryptjs';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Button, Col, Container, Form, Row, Table } from 'react-bootstrap';
+import { Button, Card, Col, Container, Form, Row, Table } from 'react-bootstrap';
 import Modal from 'react-bootstrap/Modal';
 import { toast } from 'react-toastify';
 
@@ -149,6 +149,38 @@ const AdminPage = () => {
         }
     };
 
+    const getUserRoleStats = () => {
+        const roleCounts = users.reduce((acc, user) => {
+            acc[user.role] = (acc[user.role] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+
+        return [
+            {
+                role: 'Quản trị',
+                key: 'admin',
+                count: roleCounts['admin'] || 0,
+                color: 'primary',
+                icon: 'fas fa-user-shield'
+            },
+            {
+                role: 'Trường Học',
+                key: 'university',
+                count: roleCounts['university'] || 0,
+                color: 'success',
+                icon: 'fas fa-university'
+            },
+            {
+                role: 'Học viên',
+                key: 'student',
+                count: roleCounts['student'] || 0,
+                color: 'info',
+                icon: 'fas fa-graduation-cap'
+            },
+
+        ];
+    };
+
 
     return (
         <div style={adminStyle.page}>
@@ -196,6 +228,21 @@ const AdminPage = () => {
 
                     <Col md={10}>
                         <h3>Users</h3>
+                        <Row className="mb-4">
+                            {getUserRoleStats().map((stat) => (
+                                <Col key={stat.key} md={4}>
+                                    <Card className="h-100 shadow-sm border-0">
+                                        <Card.Body className="d-flex flex-column justify-content-center align-items-center text-center">
+                                            <div className="mb-3">
+                                                <i className={`${stat.icon} fa-3x text-${stat.color}`}></i>
+                                            </div>
+                                            <Card.Title className="mb-2 text-muted">{stat.role}</Card.Title>
+                                            <h2 className={`fw-bold text-${stat.color}`}>{stat.count}</h2>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            ))}
+                        </Row>
                         <Row className="mb-3 align-items-end">
                             <Col md={9}>
                                 <Form.Group controlId="formSearch">

@@ -22,7 +22,6 @@ const ChangePasswordPage = () => {
                     cache: "no-store" // không cache request
                 });
 
-                // Ngay cả khi status là 401, vẫn parse JSON thành công
                 const data = await res.json();
                 console.log("Debug session từ client:", data);
 

@@ -53,7 +53,7 @@ const CertificateDisplay = () => {
                     return;
                 }
 
-                // Xử lý logo
+                // ảnh bằng
                 const imageUrl = result.data.imageUri?.replace('ipfs://', 'https://ipfs.io/ipfs/') || null;
                 setLogoUrl(imageUrl);
 
