@@ -10,7 +10,6 @@ import { useEffect, useState } from "react";
 import { Button, Card, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
 import { toast } from "react-toastify";
-// Đăng ký các thành phần cần thiết
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 type Certificate = {
@@ -302,6 +301,369 @@ const DegreeHistoryPage = () => {
         };
     };
 
+    // Dashboard Report Export Function
+    const exportDashboardReport = (): void => {
+        if (degreeHistory.length === 0) {
+            toast.error("No data available to export report!");
+            return;
+        }
+
+        const doc = new jsPDF();
+
+        // Title and Header
+        doc.setFont("times", "bold");
+        doc.setFontSize(22);
+        doc.text("SYSTEM OVERVIEW REPORT", 105, 15, { align: "center" });
+        doc.setFontSize(14);
+        doc.text(`Report creation date: ${new Date().toLocaleDateString("en-US")}`, 105, 25, { align: "center" });
+
+        // KPI Section
+        doc.setFontSize(16);
+        doc.text("KEY PERFORMANCE INDICATORS (KPI)", 105, 40, { align: "center" });
+
+        // KPI Data Calculations
+        const totalDegrees = degreeHistory.length;
+        const universities = new Set(degreeHistory.map(degree => degree.university));
+        const totalUniversities = universities.size;
+
+        // Calculate number of degrees in current month
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth();
+        const currentYear = currentDate.getFullYear();
+
+        const newDegreesThisMonth = degreeHistory.filter(degree => {
+            const degreeDate = new Date(
+                isNaN(Number(degree.graduationDate))
+                    ? degree.graduationDate
+                    : Number(degree.graduationDate) * 1000
+            );
+            return degreeDate.getMonth() === currentMonth && degreeDate.getFullYear() === currentYear;
+        }).length;
+
+        // Calculate verification rate (assuming all degrees in the system are verified)
+        const verificationRate = 100;
+
+        // Simulation of average verification time (as this data isn't directly available)
+        // In a real system, you'd calculate this from actual verification timestamps
+        const avgVerificationTime = "48 hours"; // Placeholder value
+
+        // Create KPI Table
+        autoTable(doc, {
+            startY: 45,
+            head: [["Indicator", "Value"]],
+            body: [
+                ["Total degrees issued", totalDegrees.toString()],
+                ["Number of participating universities", totalUniversities.toString()],
+                ["Successful verification rate", `${verificationRate}%`],
+                ["Number of new degrees in current month", newDegreesThisMonth.toString()],
+                ["Average time to verify a degree", avgVerificationTime],
+                ["Average degrees per university", (totalDegrees / totalUniversities).toFixed(2)]
+            ],
+            styles: { fontSize: 12, cellPadding: 5 },
+            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+            alternateRowStyles: { fillColor: [240, 248, 255] }
+        });
+
+        // Chart Section - Monthly Distribution
+        doc.addPage();
+        doc.setFontSize(18);
+        doc.text("DEGREE DISTRIBUTION BY MONTH", 105, 20, { align: "center" });
+
+        // Prepare monthly data for chart
+        const monthlyData = getMonthlyStats(degreeHistory);
+
+        // Convert Chart.js data to a format for PDF table
+        if (monthlyData.labels.length > 0) {
+            const monthlyRows = monthlyData.labels.map((month, index) => [
+                month,
+                monthlyData.datasets[0].data[index].toString()
+            ]);
+
+            autoTable(doc, {
+                startY: 30,
+                head: [["Month", "Number of degrees"]],
+                body: monthlyRows,
+                styles: { fontSize: 12 },
+                headStyles: { fillColor: [52, 152, 219] }
+            });
+        } else {
+            doc.text("No monthly distribution data available", 105, 40, { align: "center" });
+        }
+
+        // University Distribution
+        doc.addPage();
+        doc.setFontSize(18);
+        doc.text("DEGREE DISTRIBUTION BY UNIVERSITY", 105, 20, { align: "center" });
+
+        // Prepare university data
+        const universityData = getUniversityStats(degreeHistory);
+
+        if (universityData.labels.length > 0) {
+            const universityRows = universityData.labels.map((university, index) => [
+                university,
+                universityData.datasets[0].data[index].toString()
+            ]);
+
+            autoTable(doc, {
+                startY: 30,
+                head: [["University", "Number of degrees"]],
+                body: universityRows,
+                styles: { fontSize: 12 },
+                headStyles: { fillColor: [46, 204, 113] }
+            });
+        } else {
+            doc.text("No university distribution data available", 105, 40, { align: "center" });
+        }
+
+        // Save the report
+        doc.save("system_overview_report.pdf");
+        toast.success("Overview report exported successfully!");
+    };
+
+    // Trend Analysis Report Export Function
+    // const exportTrendReport = (): void => {
+    //     if (degreeHistory.length === 0) {
+    //         toast.error("Not enough data to export trend report!");
+    //         return;
+    //     }
+
+    //     const doc = new jsPDF();
+
+    //     // Title and Header
+    //     doc.setFont("times", "bold");
+    //     doc.setFontSize(22);
+    //     doc.text("TREND ANALYSIS REPORT", 105, 15, { align: "center" });
+    //     doc.setFontSize(14);
+    //     doc.text(`Report creation date: ${new Date().toLocaleDateString("en-US")}`, 105, 25, { align: "center" });
+
+    //     // Monthly Trend Section
+    //     doc.setFontSize(18);
+    //     doc.text("DEGREE ISSUANCE TRENDS OVER TIME", 105, 40, { align: "center" });
+
+    //     // Process data for trend analysis
+    //     const monthlyData = getMonthlyStats(degreeHistory);
+
+    //     if (monthlyData.labels.length > 0) {
+    //         // Create data for monthly trend
+    //         const monthlyTrend: [string, number][] = [];
+    //         const growthRates: [string, string][] = [];
+
+    //         // Calculate growth rates
+    //         for (let i = 0; i < monthlyData.datasets[0].data.length; i++) {
+    //             const currentValue = monthlyData.datasets[0].data[i];
+    //             monthlyTrend.push([monthlyData.labels[i], currentValue]);
+
+    //             if (i > 0) {
+    //                 const previousValue = monthlyData.datasets[0].data[i - 1];
+    //                 const growthRate = previousValue > 0
+    //                     ? ((currentValue - previousValue) / previousValue * 100).toFixed(2)
+    //                     : "N/A";
+
+    //                 growthRates.push([monthlyData.labels[i], `${growthRate}%`]);
+    //             } else {
+    //                 growthRates.push([monthlyData.labels[i], "N/A"]);
+    //             }
+    //         }
+
+    //         // Monthly Trend Table
+    //         doc.setFontSize(16);
+    //         doc.text("Number of Degrees by Month", 105, 55, { align: "center" });
+
+    //         autoTable(doc, {
+    //             startY: 60,
+    //             head: [["Month", "Number of degrees"]],
+    //             body: monthlyTrend,
+    //             styles: { fontSize: 12 },
+    //             headStyles: { fillColor: [52, 152, 219] }
+    //         });
+
+    //         // Growth Rate Table
+    //         const finalY = (doc as any).lastAutoTable.finalY + 15;
+
+    //         doc.setFontSize(16);
+    //         doc.text("Growth Rate Compared to Previous Period", 105, finalY, { align: "center" });
+
+    //         autoTable(doc, {
+    //             startY: finalY + 5,
+    //             head: [["Month", "Growth rate (%)"]],
+    //             body: growthRates,
+    //             styles: { fontSize: 12 },
+    //             headStyles: { fillColor: [231, 76, 60] },
+    //             alternateRowStyles: { fillColor: [255, 240, 240] }
+    //         });
+
+    //         // Add Trend Forecast for future months
+    //         doc.addPage();
+    //         doc.setFontSize(18);
+    //         doc.text("FUTURE TREND FORECAST", 105, 20, { align: "center" });
+
+    //         // Simple linear regression forecast using existing data
+    //         // This uses the existing data to project a simple trend for the next 3 months
+    //         const forecastData = calculateForecast(monthlyData.datasets[0].data);
+
+    //         if (forecastData.labels.length > 0) {
+    //             autoTable(doc, {
+    //                 startY: 30,
+    //                 head: [["Forecast month", "Expected number of degrees"]],
+    //                 body: forecastData.labels.map((month, index) => [
+    //                     month,
+    //                     Math.round(forecastData.values[index]).toString()
+    //                 ]),
+    //                 styles: { fontSize: 12 },
+    //                 headStyles: { fillColor: [142, 68, 173] },
+    //                 alternateRowStyles: { fillColor: [243, 235, 245] }
+    //             });
+
+    //             doc.setFontSize(12);
+    //             doc.setFont("times", "italic");
+    //             doc.text("*Forecast is calculated based on trends from current data", 105, (doc as any).lastAutoTable.finalY + 10, { align: "center" });
+    //         } else {
+    //             doc.text("Not enough data to forecast future trends", 105, 40, { align: "center" });
+    //         }
+
+    //         // University Growth Analysis
+    //         doc.addPage();
+    //         doc.setFontSize(18);
+    //         doc.setFont("times", "bold");
+    //         doc.text("GROWTH ANALYSIS BY UNIVERSITY", 105, 20, { align: "center" });
+
+    //         // Group certificates by university and month
+    //         const universityMonthlyData = analyzeUniversityGrowth(degreeHistory);
+
+    //         if (Object.keys(universityMonthlyData).length > 0) {
+    //             let startY = 30;
+
+    //             Object.keys(universityMonthlyData).forEach(university => {
+    //                 if (startY > 230) { // Check if we need a new page
+    //                     doc.addPage();
+    //                     startY = 20;
+    //                 }
+
+    //                 doc.setFontSize(14);
+    //                 doc.text(`${university}`, 105, startY, { align: "center" });
+
+    //                 const universityData = universityMonthlyData[university];
+    //                 const dataRows = Object.keys(universityData).map(month => [
+    //                     month,
+    //                     universityData[month].toString()
+    //                 ]);
+
+    //                 autoTable(doc, {
+    //                     startY: startY + 5,
+    //                     head: [["Month", "Number of degrees"]],
+    //                     body: dataRows,
+    //                     styles: { fontSize: 11 },
+    //                     headStyles: { fillColor: [41, 128, 185] },
+    //                     margin: { left: 50, right: 50 }
+    //                 });
+
+    //                 startY = (doc as any).lastAutoTable.finalY + 15;
+    //             });
+    //         } else {
+    //             doc.text("Not enough data to analyze growth by university", 105, 40, { align: "center" });
+    //         }
+
+    //     } else {
+    //         doc.text("Not enough data to analyze trends", 105, 50, { align: "center" });
+    //     }
+
+    //     // Save the report
+    //     doc.save("trend_analysis_report.pdf");
+    //     toast.success("Trend report exported successfully!");
+    // };
+
+    // Helper function to calculate a simple forecast for the next 3 months
+    interface ForecastResult {
+        labels: string[];
+        values: number[];
+    }
+
+    const calculateForecast = (data: number[]): ForecastResult => {
+        if (!data || data.length < 3) {
+            return { labels: [], values: [] };
+        }
+
+        // Use the last 6 months (or all available data) for forecasting
+        const sampleSize = Math.min(6, data.length);
+        const recentData = data.slice(-sampleSize);
+
+        // Calculate average change
+        let totalChange = 0;
+        for (let i = 1; i < recentData.length; i++) {
+            totalChange += (recentData[i] - recentData[i - 1]);
+        }
+
+        const avgChange = totalChange / (recentData.length - 1);
+
+        // Generate forecast for next 3 months
+        const lastValue = recentData[recentData.length - 1];
+        const currentDate = new Date();
+
+        const forecastLabels: string[] = [];
+        const forecastValues: number[] = [];
+
+        for (let i = 1; i <= 3; i++) {
+            const forecastDate = new Date(currentDate);
+            forecastDate.setMonth(currentDate.getMonth() + i);
+
+            const monthName = forecastDate.toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric"
+            });
+
+            forecastLabels.push(monthName);
+            forecastValues.push(lastValue + (avgChange * i));
+        }
+
+        return { labels: forecastLabels, values: forecastValues };
+    };
+
+    // Helper function to analyze university growth
+    interface UniversityMonthlyData {
+        [university: string]: {
+            [month: string]: number;
+        };
+    }
+
+    const analyzeUniversityGrowth = (certificates: Certificate[]): UniversityMonthlyData => {
+        if (!certificates || certificates.length === 0) {
+            return {};
+        }
+
+        const universityMonthlyData: UniversityMonthlyData = {};
+
+        certificates.forEach(certificate => {
+            if (!certificate.university || !certificate.graduationDate) {
+                return;
+            }
+
+            const issueDateTimestamp = isNaN(Number(certificate.graduationDate))
+                ? new Date(certificate.graduationDate).getTime()
+                : Number(certificate.graduationDate) * 1000;
+
+            if (isNaN(issueDateTimestamp)) {
+                return;
+            }
+
+            const formattedMonth = new Date(issueDateTimestamp).toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric"
+            });
+
+            if (!universityMonthlyData[certificate.university]) {
+                universityMonthlyData[certificate.university] = {};
+            }
+
+            if (!universityMonthlyData[certificate.university][formattedMonth]) {
+                universityMonthlyData[certificate.university][formattedMonth] = 0;
+            }
+
+            universityMonthlyData[certificate.university][formattedMonth]++;
+        });
+
+        return universityMonthlyData;
+    };
+
     /** Thống kê số lượng cấp bằng theo tháng */
     const getMonthlyStats = (certificates: Certificate[]) => {
         console.log("📢 Dữ liệu đầu vào:", certificates);
@@ -525,6 +887,12 @@ const DegreeHistoryPage = () => {
                         <Button variant="danger" className="ms-2" onClick={exportToPDF}>
                             📑 Xuất PDF
                         </Button>
+                        <Button variant="primary" className="ms-2" onClick={exportDashboardReport}>
+                            📊 Báo cáo tổng quan
+                        </Button>
+                        {/* <Button variant="info" className="ms-2" onClick={exportTrendReport}>
+                            📈 Báo cáo xu hướng
+                        </Button> */}
                     </div>
 
                     {/*  Bảng lịch sử */}

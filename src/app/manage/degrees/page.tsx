@@ -19,7 +19,8 @@ type Certificate = {
     degreeNumber: string;
     metadataUri: string;
     issueDate: string;
-    status: "Pending" | "Approved" | "Rejected";
+    // status: "Pending" | "Approved" | "Rejected";
+    degreeType?: string;
 };
 
 
@@ -43,6 +44,8 @@ const ManageDegreesPage = () => {
         degreetype_name: "",
         degreetype_note: "",
     });
+    const [selectedDegreeType, setSelectedDegreeType] = useState<string>("all");
+    const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
 
     /** Lấy danh sách trường đại học */
     const fetchUniversities = async () => {
@@ -92,10 +95,15 @@ const ManageDegreesPage = () => {
         }
     }
 
-    // useEffect(() => {
-
-    //     fetchCertificates();
-    // }, []);
+    useEffect(() => {
+        if (selectedDegreeType === "all") {
+            setFilteredCertificates(certificates);
+        } else {
+            setFilteredCertificates(
+                certificates.filter(cert => cert.degreeType === selectedDegreeType)
+            );
+        }
+    }, [certificates, selectedDegreeType]);
 
     useEffect(() => {
         fetchUniversities();
@@ -235,11 +243,28 @@ const ManageDegreesPage = () => {
                     <Col md={10}>
                         <div className="d-flex justify-content-between align-items-center mb-3">
                             <h3>Quản Lý Bằng Cấp</h3>
+                            <div className="d-flex align-items-center">
+                                <label htmlFor="degreeTypeFilter" className="me-2">Lọc theo loại bằng cấp:</label>
+                                <select
+                                    id="degreeTypeFilter"
+                                    className="form-select"
+                                    value={selectedDegreeType}
+                                    onChange={(e) => setSelectedDegreeType(e.target.value)}
+                                    style={{ width: '200px' }}
+                                >
+                                    <option value="all">Tất cả</option>
+                                    {degreeTypes.map(type => (
+                                        <option key={type._id} value={type.degreetype_name}>
+                                            {type.degreetype_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
                         {isLoading ? (
                             <div>Đang tải danh sách bằng cấp...</div>
-                        ) : certificates.length > 0 ? (
+                        ) : filteredCertificates.length > 0 ? (
                             <Table striped bordered hover responsive>
                                 <thead>
                                     <tr>
@@ -247,6 +272,7 @@ const ManageDegreesPage = () => {
                                         <th className="text-center align-middle">Tên Sinh Viên</th>
                                         <th className="text-center align-middle">Trường</th>
                                         <th className="text-center align-middle">Ngành</th>
+                                        <th className="text-center align-middle">Loại bằng</th>
                                         <th className="text-center align-middle">Ngày Cấp</th>
                                         <th className="text-center align-middle">Xếp Loại</th>
                                         <th className="text-center align-middle">Điểm</th>
@@ -254,7 +280,7 @@ const ManageDegreesPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {certificates.map((certificate) => (
+                                    {filteredCertificates.map((certificate) => (
                                         <tr key={certificate.degreeNumber}>
                                             <td
                                                 style={{
@@ -271,6 +297,7 @@ const ManageDegreesPage = () => {
                                             <td className="text-center align-middle">{certificate.studentName}</td>
                                             <td className="text-center align-middle">{certificate.university}</td>
                                             <td className="text-center align-middle">{certificate.major}</td>
+                                            <td className="text-center align-middle">{certificate.degreeType || "N/A"}</td>
                                             <td className="text-center align-middle">
                                                 {certificate.graduationDate}
                                             </td>

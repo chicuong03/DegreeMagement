@@ -504,12 +504,14 @@ export default function BlogPage() {
 
                         {/* Danh sách bài viết */}
                         {!isLoading && !error && (
-                            <div className="space-y-4">
+                            <div style={{ maxHeight: '600px', overflowY: 'auto', }}
+                                className="space-y-4">
                                 {filteredBlogs.length > 0 ? (
                                     filteredBlogs.map((blog) => (
                                         <div
                                             key={blog._id}
                                             className="bg-white shadow-sm hover:shadow-md rounded-lg p-5 border border-gray-200 transition duration-200"
+                                            style={{ maxHeight: '300px', overflow: 'hidden' }}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <h2 className="text-lg font-bold text-gray-800 mb-2">{blog.title || "Không có tiêu đề"}</h2>

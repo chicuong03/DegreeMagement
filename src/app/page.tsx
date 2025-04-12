@@ -50,57 +50,182 @@ export default function Home() {
 
   return (
     <div style={homeStyle.container}>
-      {/* nền */}
-      <div id="parallax-bg" style={homeStyle.parallax}></div>
+      {/* Nền với gradient và hiệu ứng parallax */}
+
 
       <section className="mt-3" style={homeStyle.hero}>
+        <div id="parallax-bg" style={homeStyle.parallax}>
+          <div style={homeStyle.parallaxOverlay}></div>
+        </div>
         <style jsx global>{`
-    @keyframes flip {
-      0%, 20% { transform: perspective(1000px) rotateY(0deg); }
-      30%, 50% { transform: perspective(1000px) rotateY(180deg); }
-      60%, 80% { transform: perspective(1000px) rotateY(360deg); }
-      100% { transform: perspective(1000px) rotateY(360deg); }
-    }
-    
-    .hero-image-container {
-      perspective: 1000px;
-    }
-    
-    .hero-image-flip {
-      animation: flip 19s ease-in-out infinite;
-      transform-style: preserve-3d;
-    }
-    
-    .hero-image {
-      backface-visibility: visible;
-      width: 100%;
-      height: auto;
-    }
-  `}</style>
+          @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+          }
+          
+          @keyframes fade-in {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+          }
+          
+          @keyframes shine {
+            0% { background-position: -100% 0; }
+            100% { background-position: 200% 0; }
+          }
+          
+          .hero-image-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+          }
+          
+          .hero-image-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+          }
+          
+          .hero-image {
+            width: 100%;
+            height: auto;
+            transition: transform 0.6s ease;
+          }
+          
+          .hero-image-container:hover .hero-image {
+            transform: scale(1.05);
+          }
+          
+          .hero-content-item {
+            animation: fade-in 0.8s ease-out forwards;
+            opacity: 0;
+          }
+          
+          .hero-title {
+            animation-delay: 0.2s;
+          }
+          
+          .hero-subtitle {
+            animation-delay: 0.4s;
+          }
+          
+          .hero-button-container {
+            animation-delay: 0.6s;
+          }
+          
+          .shine-button {
+            position: relative;
+            overflow: hidden;
+          }
+          
+          .shine-button:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+              to right, 
+              rgba(255, 255, 255, 0) 0%,
+              rgba(255, 255, 255, 0.3) 50%,
+              rgba(255, 255, 255, 0) 100%
+            );
+            transform: skewX(-20deg);
+            animation: shine 3s infinite;
+            background-size: 200% 100%;
+          }
+          
+          .floating-image-left {
+            animation: float 6s ease-in-out infinite;
+          }
+          
+          .floating-image-right {
+            animation: float 6s ease-in-out 2s infinite;
+          }
+        `}</style>
 
         <div style={homeStyle.heroContainer}>
-          <div style={homeStyle.heroImageLeft} className="hero-image-container">
-            <div className="hero-image-flip">
-              <img src="/images/bn1.jpg" alt="Slider Left" style={homeStyle.heroImage} className="hero-image" />
-            </div>
+          <div style={homeStyle.heroImageLeft} className="hero-image-container floating-image-left">
+            <a
+              href="https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'block', width: '100%', height: '100%', cursor: 'pointer' }}
+            >
+              <img
+                src="/images/bn1.jpg"
+                alt="Blockchain Certificate"
+                style={homeStyle.heroImage}
+                className="hero-image"
+              />
+              <div style={homeStyle.imageOverlay}></div>
+            </a>
           </div>
 
-          {/* Phần chính (title, subtitle, button) */}
+          {/* Phần nội dung chính */}
           <div style={homeStyle.heroContent}>
-            <h1 style={homeStyle.heroTitle}>Quản Lý Bằng Cấp Với Công Nghệ Blockchain</h1>
-            <p style={homeStyle.heroSubtitle}>
+            <h1 style={homeStyle.heroTitle} className="hero-content-item hero-title">
+              Quản Lý Bằng Cấp Với Công Nghệ Blockchain
+            </h1>
+            <p style={homeStyle.heroSubtitle} className="hero-content-item hero-subtitle">
               Đảm bảo tính minh bạch, bảo mật và hiện đại hóa quy trình quản lý thông tin.
             </p>
-            <Link href="/">
-              <button style={homeStyle.ctaButton}>Bắt đầu ngay</button>
-            </Link>
-          </div>
-
-          <div style={homeStyle.heroImageRight} className="hero-image-container">
-            <div className="hero-image-flip">
-              <img src="/images/bn2.jpg" alt="Slider Right" style={homeStyle.heroImage} className="hero-image" />
+            <div className="hero-content-item hero-button-container">
+              <Link href="/">
+                <button style={homeStyle.ctaButton} className="shine-button">
+                  Bắt đầu ngay
+                </button>
+              </Link>
+            </div>
+            <div style={homeStyle.statsBadges} className="hero-content-item">
+              <div style={homeStyle.badge}>
+                <span style={homeStyle.badgeIcon}>🔒</span>
+                <span style={homeStyle.badgeText}>Bảo mật</span>
+              </div>
+              <div style={homeStyle.badge}>
+                <span style={homeStyle.badgeIcon}>⚡</span>
+                <span style={homeStyle.badgeText}>Tốc độ</span>
+              </div>
+              <div style={homeStyle.badge}>
+                <span style={homeStyle.badgeIcon}>🌐</span>
+                <span style={homeStyle.badgeText}>Toàn cầu</span>
+              </div>
             </div>
           </div>
+
+          <div style={homeStyle.heroImageRight} className="hero-image-container floating-image-right">
+            <a
+              href="https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'block', width: '100%', height: '100%', cursor: 'pointer' }}
+            >
+              <img
+                src="/images/bn2.jpg"
+                alt="Digital Certificate"
+                style={homeStyle.heroImage}
+                className="hero-image"
+              />
+              <div style={homeStyle.imageOverlay}></div>
+            </a>
+          </div>
+        </div>
+
+        <div style={homeStyle.heroWave}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1440 120"
+            preserveAspectRatio="none"
+            style={{ width: '100%', height: '120px', display: 'block' }}
+          >
+            <path
+              fill="#ffffff"
+              fillOpacity="1"
+              d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"
+            ></path>
+          </svg>
         </div>
       </section>
 
@@ -308,64 +433,173 @@ const homeStyle: { [key: string]: React.CSSProperties } = {
     position: 'relative',
     minHeight: '100vh',
     overflow: 'hidden',
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: '"Segoe UI", Roboto, "Helvetica Neue", sans-serif',
+  },
+  parallax: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    // Sử dụng lại màu nền ban đầu
+    background: 'linear-gradient(90deg, #4A90E2, #50E3C2)',
+    zIndex: -1,
+  },
+  parallaxOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: 'url("/images/grid-pattern.png")',
+    opacity: 0.1,
   },
   hero: {
-    textAlign: 'center',
-    padding: '50px 20px',
-    color: '#fff',
-    background: '#007bff',
     position: 'relative',
+    borderRadius: '5px',
+    padding: '50px 0 80px',
+    color: '#fff',
+    overflow: 'hidden',
+  },
+  heroWave: {
+    position: 'absolute',
+    bottom: -1,
+    left: 0,
+    width: '100%',
+    height: '100px', // Giảm chiều cao wave
+    zIndex: 1,
   },
   heroContainer: {
     display: 'flex',
-    justifyContent: 'center',  // Căn giữa các phần tử
-    alignItems: 'center',      // Căn giữa theo chiều dọc
-    width: '100%',
-    maxWidth: '1200px',        // Giới hạn chiều rộng
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    maxWidth: '1200px',
     margin: '0 auto',
-    flexWrap: 'wrap',          // Cho phép các phần tử được xếp lại khi nhỏ màn hình
+    padding: '0 20px',
+    position: 'relative',
+    zIndex: 2,
+    gap: '20px', // Giảm khoảng cách giữa các phần tử
+    flexWrap: 'wrap',
   },
   heroImageLeft: {
-    flex: '1 1 30%',          // Hình ảnh chiếm 30% chiều rộng
-    paddingRight: '20px',
-    animation: 'floatLeft 6s ease-in-out infinite',
+    flex: '1 1 260px', // Giảm kích thước xuống
+    maxWidth: '260px',
+    minWidth: '200px',
   },
   heroContent: {
-    flex: '1 1 40%',          // Nội dung chiếm 40% chiều rộng
+    flex: '1 1 450px',
     textAlign: 'center',
-    padding: '20px',          // Padding để nội dung không sát lề
+    padding: '10px', // Giảm padding
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '15px', // Giảm khoảng cách giữa các phần tử nội dung
   },
   heroImageRight: {
-    flex: '1 1 30%',          // Hình ảnh bên phải chiếm 30% chiều rộng
-    paddingLeft: '20px',
-    animation: 'floatRight 6s ease-in-out infinite',
+    flex: '1 1 260px', // Giảm kích thước xuống
+    maxWidth: '260px',
+    minWidth: '200px',
   },
   heroImage: {
-    width: '100%',            // Đảm bảo hình ảnh chiếm đầy đủ không gian
-    height: 'auto',           // Tự động điều chỉnh chiều cao theo tỷ lệ
-    borderRadius: '8px',
+    width: '100%',
+    height: 'auto',
+  },
+  imageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.3))',
+    borderRadius: '12px',
   },
   heroTitle: {
-    fontSize: '3rem',
+    fontSize: '2.5rem', // Giảm kích thước font
     fontWeight: 'bold',
-    margin: '20px 0',
+    margin: '0 0 5px', // Giảm margin
+    textShadow: '0 2px 5px rgba(0,0,0,0.1)',
   },
   heroSubtitle: {
-    fontSize: '1.5rem',
-    margin: '10px 0 30px',
+    fontSize: '1.2rem', // Giảm kích thước font
+    lineHeight: '1.5',
+    margin: '0 0 15px', // Giảm margin
+    maxWidth: '550px',
   },
   ctaButton: {
-    backgroundColor: '#28a745',
+    background: '#28a745', // Sử dụng lại màu nút ban đầu
     border: 'none',
-    padding: '15px 30px',
-    fontSize: '1.2rem',
+    padding: '12px 25px', // Giảm padding
+    fontSize: '1.1rem',
     fontWeight: 'bold',
     color: '#fff',
-    borderRadius: '5px',
+    borderRadius: '5px', // Sử dụng border-radius ban đầu
     cursor: 'pointer',
-    transition: 'transform 0.3s, background-color 0.3s',
+    transition: 'all 0.3s',
+    boxShadow: '0 4px 10px rgba(40, 167, 69, 0.3)',
   },
+  statsBadges: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '10px',
+    marginTop: '10px', // Giảm margin
+    flexWrap: 'wrap',
+  },
+  badge: {
+    background: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: '20px',
+    padding: '6px 12px', // Giảm padding
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+  },
+  badgeIcon: {
+    fontSize: '1rem',
+  },
+  badgeText: {
+    fontSize: '0.85rem',
+    fontWeight: '500',
+  },
+  // heroImageLeft: {
+  //   flex: '1 1 30%',          // Hình ảnh chiếm 30% chiều rộng
+  //   paddingRight: '20px',
+  //   animation: 'floatLeft 6s ease-in-out infinite',
+  // },
+  // heroContent: {
+  //   flex: '1 1 40%',          // Nội dung chiếm 40% chiều rộng
+  //   textAlign: 'center',
+  //   padding: '20px',          // Padding để nội dung không sát lề
+  // },
+  // heroImageRight: {
+  //   flex: '1 1 30%',          // Hình ảnh bên phải chiếm 30% chiều rộng
+  //   paddingLeft: '20px',
+  //   animation: 'floatRight 6s ease-in-out infinite',
+  // },
+  // heroImage: {
+  //   width: '100%',            // Đảm bảo hình ảnh chiếm đầy đủ không gian
+  //   height: 'auto',           // Tự động điều chỉnh chiều cao theo tỷ lệ
+  //   borderRadius: '8px',
+  // },
+  // heroTitle: {
+  //   fontSize: '3rem',
+  //   fontWeight: 'bold',
+  //   margin: '20px 0',
+  // },
+  // heroSubtitle: {
+  //   fontSize: '1.5rem',
+  //   margin: '10px 0 30px',
+  // },
+  // ctaButton: {
+  //   backgroundColor: '#28a745',
+  //   border: 'none',
+  //   padding: '15px 30px',
+  //   fontSize: '1.2rem',
+  //   fontWeight: 'bold',
+  //   color: '#fff',
+  //   borderRadius: '5px',
+  //   cursor: 'pointer',
+  //   transition: 'transform 0.3s, background-color 0.3s',
+  // },
 
   auditLog: {
     padding: "40px 20px",
@@ -418,16 +652,7 @@ const homeStyle: { [key: string]: React.CSSProperties } = {
     color: "#9abbdb",
     fontStyle: "italic"
   },
-  parallax: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '300px',
-    background: 'url("https://via.placeholder.com/1920x300") no-repeat center center',
-    backgroundSize: 'cover',
-    zIndex: -1,
-  },
+
   about: {
     padding: '50px 20px',
     textAlign: 'center',

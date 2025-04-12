@@ -85,7 +85,6 @@ export default function VerifyCertificate() {
                     {error}
                 </div>
             )}
-
             {result && result.valid && result.data && (
                 <div style={styles.resultContainer}>
                     <h2 className="text-primary" style={styles.title}>Thông Tin Bằng Cấp</h2>
@@ -93,100 +92,164 @@ export default function VerifyCertificate() {
                     {Array.isArray(result.data) ? (
                         <div style={styles.certificateGrid}>
                             {result.data.map((cert, index) => (
-                                <div
-                                    key={index}
-                                    style={{
-                                        ...styles.certificateCard,
-                                        // ':hover': styles.certificateCardHover
-                                    }}
-                                >
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>Mã bằng cấp:</span>
-                                        <span style={styles.infoValue}>{cert.degreeNumber}</span>
-                                    </div>
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>Người nhận:</span>
-                                        <span style={styles.infoValue}>{cert.studentName}</span>
-                                    </div>
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>Trường:</span>
-                                        <span style={styles.infoValue}>{cert.university}</span>
-                                    </div>
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>Ngành:</span>
-                                        <span style={styles.infoValue}>{cert.major}</span>
-                                    </div>
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>Ngày sinh:</span>
-                                        <span style={styles.infoValue}>{cert.dateOfBirth}</span>
-                                    </div>
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>Ngày tốt nghiệp:</span>
-                                        <span style={styles.infoValue}>{cert.graduationDate}</span>
-                                    </div>
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>Xếp loại:</span>
-                                        <span style={{
-                                            ...styles.infoValue,
-                                            color: cert.grade === 'Xuất sắc' ? '#2ecc71' :
-                                                cert.grade === 'Giỏi' ? '#3498db' :
-                                                    cert.grade === 'Khá' ? '#f39c12' : '#e74c3c'
-                                        }}>{cert.grade}</span>
-                                    </div>
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>Điểm:</span>
-                                        <span style={{
-                                            ...styles.infoValue,
-                                            color: parseFloat(cert.score) >= 8 ? '#2ecc71' :
-                                                parseFloat(cert.score) >= 6.5 ? '#3498db' : '#e74c3c'
-                                        }}>{cert.score}</span>
-                                    </div>
+                                <div key={index} style={styles.certificateCard}>
+                                    <div style={styles.certificateContent}>
+                                        <div style={styles.infoColumn}>
+                                            <div style={styles.infoRow}>
+                                                <span style={styles.infoLabel}>Mã bằng cấp:</span>
+                                                <span style={styles.infoValue}>{cert.degreeNumber}</span>
+                                            </div>
+                                            {/* Các thông tin khác như đã có */}
+                                            <div style={styles.infoRow}>
+                                                <span style={styles.infoLabel}>Người nhận:</span>
+                                                <span style={styles.infoValue}>{cert.studentName}</span>
+                                            </div>
+                                            <div style={styles.infoRow}>
+                                                <span style={styles.infoLabel}>Trường:</span>
+                                                <span style={styles.infoValue}>{cert.university}</span>
+                                            </div>
+                                            <div style={styles.infoRow}>
+                                                <span style={styles.infoLabel}>Ngành:</span>
+                                                <span style={styles.infoValue}>{cert.major}</span>
+                                            </div>
+                                            <div style={styles.infoRow}>
+                                                <span style={styles.infoLabel}>Ngày sinh:</span>
+                                                <span style={styles.infoValue}>{cert.dateOfBirth}</span>
+                                            </div>
+                                            <div style={styles.infoRow}>
+                                                <span style={styles.infoLabel}>Ngày tốt nghiệp:</span>
+                                                <span style={styles.infoValue}>{cert.graduationDate}</span>
+                                            </div>
+                                            <div style={styles.infoRow}>
+                                                <span style={styles.infoLabel}>Xếp loại:</span>
+                                                <span style={{
+                                                    ...styles.infoValue,
+                                                    color: cert.grade === 'Xuất sắc' ? '#2ecc71' :
+                                                        cert.grade === 'Giỏi' ? '#3498db' :
+                                                            cert.grade === 'Khá' ? '#f39c12' : '#e74c3c'
+                                                }}>{cert.grade}</span>
+                                            </div>
+                                            <div style={styles.infoRow}>
+                                                <span style={styles.infoLabel}>Điểm:</span>
+                                                <span style={{
+                                                    ...styles.infoValue,
+                                                    color: parseFloat(cert.score) >= 8 ? '#2ecc71' :
+                                                        parseFloat(cert.score) >= 6.5 ? '#3498db' : '#e74c3c'
+                                                }}>{cert.score}</span>
+                                            </div>
 
-                                    <a
-                                        href={`https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69?a=${cert.nftId}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={styles.nftLink}
-                                    >
-                                        Xem NFT trên CoinEx Smart Chain
-                                    </a>
+                                            <a
+                                                href={`https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69?a=${cert.nftId}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={styles.nftLink}
+                                            >
+                                                Xem NFT trên CoinEx Smart Chain
+                                                <div style={styles.qrCodeContainer}>
+                                                    <QRCodeCanvas
+                                                        value={`https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69?a=${cert.nftId}`}
+                                                        size={128}
+                                                    />
+                                                    <p style={styles.qrCodeLabel}>Quét mã để xem trên CoinEx</p>
+                                                </div>
+                                            </a>
 
-                                    <div style={styles.qrCodeContainer}>
-                                        <QRCodeCanvas
-                                            value={`https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69?a=${cert.nftId}`}
-                                            size={128}
-                                        />
-                                        <p style={styles.qrCodeLabel}>Quét mã để xem trên CoinEx</p>
+                                        </div>
+
+                                        <div style={styles.imageColumn}>
+                                            {cert.imageUri && (
+                                                <div style={styles.imageWrapper}>
+                                                    <img
+                                                        src={cert.imageUri.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')}
+                                                        alt="Ảnh bằng cấp"
+                                                        style={styles.certificateImage}
+                                                        onError={(e) => {
+                                                            e.currentTarget.src = '/placeholder-certificate.png';
+                                                            e.currentTarget.onerror = null;
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div style={styles.certSingle}>
-                            <p><strong>Mã bằng cấp:</strong> {result.data.certificateID}</p>
-                            <p><strong>Người nhận:</strong> {result.data.studentName}</p>
-                            <p><strong>Trường:</strong> {result.data.university}</p>
-                            <p><strong>Ngành:</strong> {result.data.major}</p>
-                            <p><strong>Ngày sinh:</strong> {result.data.dateOfBirth}</p>
-                            <p><strong>Ngày tốt nghiệp:</strong> {result.data.graduationDate}</p>
-                            <p><strong>Xếp loại:</strong> {result.data.grade}</p>
-                            <p><strong>Điểm:</strong> {result.data.score}</p>
-                            <p>
-                                <strong>NFT trên Explorer:</strong>{" "}
-                                <a
-                                    href={`https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69?a=${result.data.nftId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    Xem trên CoinEx Smart Chain
-                                </a>
-                            </p>
-                            <div style={{ marginTop: "10px", textAlign: "center" }}>
-                                <QRCodeCanvas
-                                    value={`https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69?a=${result.data.nftId}`}
-                                    size={128}
-                                />
-                                <p style={{ fontSize: "0.9rem", color: "#555" }}>Quét mã để xem trên CoinEx</p>
+                        <div style={styles.certificateCard}>
+                            <div style={styles.certificateContent}>
+                                <div style={styles.infoColumn}>
+                                    <div style={styles.infoRow}>
+                                        <span style={styles.infoLabel}>Mã bằng cấp:</span>
+                                        <span style={styles.infoValue}>{result.data.degreeNumber || result.data.certificateID}</span>
+                                    </div>
+                                    <div style={styles.infoRow}>
+                                        <span style={styles.infoLabel}>Người nhận:</span>
+                                        <span style={styles.infoValue}>{result.data.studentName}</span>
+                                    </div>
+                                    <div style={styles.infoRow}>
+                                        <span style={styles.infoLabel}>Trường:</span>
+                                        <span style={styles.infoValue}>{result.data.university}</span>
+                                    </div>
+                                    <div style={styles.infoRow}>
+                                        <span style={styles.infoLabel}>Ngành:</span>
+                                        <span style={styles.infoValue}>{result.data.major}</span>
+                                    </div>
+                                    <div style={styles.infoRow}>
+                                        <span style={styles.infoLabel}>Ngày sinh:</span>
+                                        <span style={styles.infoValue}>{result.data.dateOfBirth}</span>
+                                    </div>
+                                    <div style={styles.infoRow}>
+                                        <span style={styles.infoLabel}>Ngày tốt nghiệp:</span>
+                                        <span style={styles.infoValue}>{result.data.graduationDate}</span>
+                                    </div>
+                                    <div style={styles.infoRow}>
+                                        <span style={styles.infoLabel}>Xếp loại:</span>
+                                        <span style={{
+                                            ...styles.infoValue,
+                                            color: result.data.grade === 'Xuất sắc' ? '#2ecc71' :
+                                                result.data.grade === 'Giỏi' ? '#3498db' :
+                                                    result.data.grade === 'Khá' ? '#f39c12' : '#e74c3c'
+                                        }}>{result.data.grade}</span>
+                                    </div>
+                                    <div style={styles.infoRow}>
+                                        <span style={styles.infoLabel}>Điểm:</span>
+                                        <span style={{
+                                            ...styles.infoValue,
+                                            color: parseFloat(result.data.score) >= 8 ? '#2ecc71' :
+                                                parseFloat(result.data.score) >= 6.5 ? '#3498db' : '#e74c3c'
+                                        }}>{result.data.score}</span>
+                                    </div>
+                                    <p>
+                                        <strong>NFT trên Explorer:</strong>{" "}
+                                        <a
+                                            href={`https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69?a=${result.data.nftId}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            Xem trên CoinEx Smart Chain
+
+                                        </a>
+
+                                    </p>
+                                </div>
+
+                                <div style={styles.imageColumn}>
+                                    {result.data.imageUri && (
+                                        <div style={styles.imageWrapper}>
+                                            <img
+                                                src={result.data.imageUri.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')}
+                                                alt="Ảnh bằng cấp"
+                                                style={styles.certificateImage}
+                                                onError={(e) => {
+                                                    e.currentTarget.src = '/placeholder-certificate.png';
+                                                    e.currentTarget.onerror = null;
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+
+                                </div>
                             </div>
                         </div>
                     )}
@@ -197,7 +260,47 @@ export default function VerifyCertificate() {
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-    container: { maxWidth: "75%", margin: "0 auto", padding: "20px", textAlign: "center", background: "#edf1f5", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)" },
+
+
+    // Thêm vào phần styles
+    certificateContent: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: '20px',
+        alignItems: 'flex-start',
+        flexWrap: 'wrap',
+    },
+    infoColumn: {
+        flex: '1 1 300px',
+        minWidth: '300px',
+    },
+    imageColumn: {
+        flex: '1 1 350px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '15px',
+        alignItems: 'center',
+    },
+    imageWrapper: {
+        width: '100%',
+        border: '1px solid #e0e0e0',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        backgroundColor: '#fff',
+    },
+    certificateImage: {
+        width: '100%',
+        height: 'auto',
+        objectFit: 'contain',
+        aspectRatio: '16 / 11',
+        display: 'block',
+    },
+
+
+
+    container: { maxWidth: "97%", margin: "0 auto", padding: "10px", textAlign: "center", background: "#edf1f5", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)" },
     //title: { fontSize: "2rem", fontWeight: "bold", color: "#333" },
     subtitle: { fontSize: "1.2rem", color: "#666", marginBottom: "20px" },
     form: { display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" },
@@ -222,13 +325,22 @@ const styles: { [key: string]: React.CSSProperties } = {
         backgroundColor: "#fff",
         border: "1px solid #ddd",
     },
+    certificateCard: {
+        backgroundColor: '#f8f9fa',
+        border: '1px solid #e9ecef',
+        borderRadius: '12px',
+        padding: '20px',
+        transition: 'all 0.3s ease',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        marginBottom: '20px', // Thêm margin bottom để tách biệt các card
+    },
     certSingle: {
-        textAlign: "left",
-        padding: "15px",
-        borderRadius: "10px",
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-        backgroundColor: "#fff",
-        border: "1px solid #ddd",
+        textAlign: 'left',
+        padding: '25px',
+        borderRadius: '10px',
+        boxShadow: '0px 4px 6px rgba(0,0,0,0.1)',
+        backgroundColor: '#fff',
+        border: '1px solid #ddd',
     },
 
     resultContainer: {
@@ -252,15 +364,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
         gap: '20px'
     },
-    certificateCard: {
-        backgroundColor: '#f8f9fa',
-        border: '1px solid #e9ecef',
-        borderRadius: '12px',
-        padding: '20px',
-        transition: 'all 0.3s ease',
-        transform: 'translateY(0)',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.4)'
-    },
+
     certificateCardHover: {
         transform: 'translateY(-10px)',
         boxShadow: '0 10px 20px rgba(0,0,0,0.1)'
@@ -278,7 +382,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     },
     infoValue: {
         fontWeight: '600',
-        color: '#2c3e50'
+        color: '#2c3e50',
     },
     nftLink: {
         color: '#3498db',
@@ -291,7 +395,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        marginTop: '20px'
+        marginTop: '20px',
     },
     qrCodeLabel: {
         fontSize: '12px',

@@ -100,6 +100,35 @@ export default function GrantCertificate() {
         }
     };
 
+    useEffect(() => {
+        const checkSavedWallet = async () => {
+            const savedAddress = localStorage.getItem("walletAddress");
+            if (savedAddress && window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: "eth_accounts" });
+                    if (accounts.includes(savedAddress)) {
+                        setAccount(savedAddress);
+
+                        const isAdminSaved = localStorage.getItem("isAdmin") === "true";
+                        setIsAdmin(isAdminSaved);
+
+                        console.log("Đã khôi phục kết nối ví:", savedAddress);
+                        await fetchCertificates();
+                    } else {
+                        localStorage.removeItem("walletAddress");
+                        localStorage.removeItem("isAdmin");
+                    }
+                } catch (error) {
+                    console.error("Lỗi khi khôi phục kết nối ví:", error);
+                    localStorage.removeItem("walletAddress");
+                    localStorage.removeItem("isAdmin");
+                }
+            }
+        };
+
+        checkSavedWallet();
+    }, []);
+
     const connectWallet = async () => {
         if (!window.ethereum) {
             toast.error("Bạn cần cài đặt MetaMask!");
@@ -107,19 +136,25 @@ export default function GrantCertificate() {
         }
         try {
             const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-            setAccount(accounts[0]);
+            const currentAccount = accounts[0];
+            setAccount(currentAccount);
 
-            // Kiểm tra nếu tài khoản này là admin của contract
+            // Lưu localStorage
+            localStorage.setItem("walletAddress", currentAccount);
+
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const contract = getContract(provider);
             try {
                 const owner = await contract.owner();
-                setIsAdmin(owner.toLowerCase() === accounts[0].toLowerCase());
+                const isAdminAccount = owner.toLowerCase() === currentAccount.toLowerCase();
+                setIsAdmin(isAdminAccount);
+
+                localStorage.setItem("isAdmin", isAdminAccount ? "true" : "false");
             } catch (error) {
                 console.error("Không thể kiểm tra quyền admin:", error);
             }
 
-            toast.success(`Đã kết nối: ${accounts[0]}`);
+            toast.success(`Đã kết nối: ${currentAccount}`);
 
             await fetchCertificates();
         } catch (error) {
@@ -356,6 +391,14 @@ export default function GrantCertificate() {
         }
     };
 
+    const disconnectWallet = () => {
+        setAccount(null);
+        setIsAdmin(false);
+        localStorage.removeItem("walletAddress");
+        localStorage.removeItem("isAdmin");
+        toast.info("Đã ngắt kết nối ví");
+    };
+
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
@@ -404,11 +447,19 @@ export default function GrantCertificate() {
         <Container>
             <h1 className="text-center mb-4 text-primary mt-3">Cấp Bằng Đại Học</h1>
 
-            {/* Kết nối MetaMask */}
             <div className="d-flex justify-content-end mb-3">
-                <Button variant="secondary" onClick={connectWallet}>
-                    {account ? `Đã kết nối: ${account}` : "Kết nối MetaMask"}
-                </Button>
+                {account ? (
+                    <div>
+                        <span className="me-2 text-info">Đã kết nối: {account.substring(0, 6)}...{account.substring(account.length - 4)}</span>
+                        <Button variant="outline-secondary" onClick={disconnectWallet} size="sm">
+                            Ngắt kết nối
+                        </Button>
+                    </div>
+                ) : (
+                    <Button variant="secondary" onClick={connectWallet}>
+                        Kết nối MetaMask
+                    </Button>
+                )}
             </div>
 
             {/* Form cấp bằng */}
@@ -416,7 +467,7 @@ export default function GrantCertificate() {
                 <Row>
                     <Col md={4}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Họ và tên sinh viên *</Form.Label>
+                            <Form.Label>Họ và tên sinh viên <span className="text-danger">*</span></Form.Label>
                             <Form.Control
                                 type="text"
                                 value={formData.studentName}
@@ -428,7 +479,7 @@ export default function GrantCertificate() {
 
                     <Col md={4}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Trường đại học *</Form.Label>
+                            <Form.Label>Trường đại học <span className="text-danger">*</span></Form.Label>
                             <Form.Select
                                 name="university"
                                 required
@@ -448,7 +499,7 @@ export default function GrantCertificate() {
 
                     <Col md={4}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Ngày sinh *</Form.Label>
+                            <Form.Label>Ngày sinh <span className="text-danger">*</span></Form.Label>
                             <Form.Control
                                 type="date"
                                 value={formData.dateOfBirth}
@@ -462,7 +513,7 @@ export default function GrantCertificate() {
                 <Row>
                     <Col md={4}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Ngày Cấp *</Form.Label>
+                            <Form.Label>Ngày Cấp <span className="text-danger">*</span> </Form.Label>
                             <Form.Control
                                 type="date"
                                 value={formData.graduationDate}
@@ -474,7 +525,7 @@ export default function GrantCertificate() {
 
                     <Col md={4}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Điểm *</Form.Label>
+                            <Form.Label>Điểm <span className="text-danger">*</span></Form.Label>
                             <Form.Control
                                 type="number"
                                 value={formData.score}
@@ -488,7 +539,7 @@ export default function GrantCertificate() {
 
                     <Col md={4}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Xếp loại *</Form.Label>
+                            <Form.Label>Xếp loại <span className="text-danger">*</span></Form.Label>
                             <Form.Select
                                 value={formData.grade}
                                 required
@@ -507,7 +558,7 @@ export default function GrantCertificate() {
                 <Row>
                     <Col md={6}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Loại Bằng Cấp *</Form.Label>
+                            <Form.Label>Loại Bằng Cấp <span className="text-danger">*</span></Form.Label>
                             <Form.Select
                                 value={formData.degreeType}
                                 onChange={(e) => {
@@ -561,7 +612,7 @@ export default function GrantCertificate() {
                     {/* Thêm trường Số Hiệu Bằng Cấp */}
                     <Col md={6}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Số hiệu bằng cấp *</Form.Label>
+                            <Form.Label>Số hiệu bằng cấp <span className="text-danger">*</span></Form.Label>
                             <Form.Control
                                 type="text"
                                 value={formData.degreeNumber}
@@ -574,7 +625,7 @@ export default function GrantCertificate() {
                 <Row>
                     <Col md={6}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Ngành học *</Form.Label>
+                            <Form.Label>Ngành học <span className="text-danger">*</span></Form.Label>
                             <Form.Control
                                 type="text"
                                 value={formData.major}
@@ -586,7 +637,7 @@ export default function GrantCertificate() {
 
                     <Col md={6}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Ảnh NFT</Form.Label>
+                            <Form.Label>Ảnh bằng cấp <span className="text-danger">*</span></Form.Label>
                             <Form.Control type="file" accept="image/*" onChange={handleFileChange} />
                         </Form.Group>
                     </Col>
@@ -678,7 +729,29 @@ export default function GrantCertificate() {
                             borderRadius: '10px'
                         }}>
                             <Row>
-                                <Col md={8}>
+                                <Col md={6}>
+                                    {selectedCertificate.imageUri && (
+                                        <div style={{
+                                            border: '2px solid #e0e6ed',
+                                            borderRadius: '10px',
+                                            overflow: 'hidden',
+                                            boxShadow: '5px 10px 10px rgba(0,0,0,0.2)'
+                                        }}>
+                                            <img
+                                                src={selectedCertificate.imageUri.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                                                alt="Ảnh bằng cấp"
+                                                style={{
+                                                    width: '100%',
+                                                    height: 'auto',
+                                                    //maxHeight: '300px',
+                                                    objectFit: 'cover',
+                                                    aspectRatio: '16 / 11',
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </Col>
+                                <Col md={6}>
                                     <div style={{
                                         backgroundColor: 'white ',
                                         borderRadius: '15px',
@@ -724,26 +797,6 @@ export default function GrantCertificate() {
                                             </Col>
                                         </Row>
                                     </div>
-                                </Col>
-                                <Col md={4}>
-                                    {selectedCertificate.imageUri && (
-                                        <div style={{
-                                            border: '2px solid #e0e6ed',
-                                            borderRadius: '10px',
-                                            overflow: 'hidden',
-                                            boxShadow: '5px 10px 10px rgba(0,0,0,0.2)'
-                                        }}>
-                                            <img
-                                                src={selectedCertificate.imageUri.replace('ipfs://', 'https://ipfs.io/ipfs/')}
-                                                alt="Ảnh bằng cấp"
-                                                style={{
-                                                    width: '100%',
-                                                    height: 'auto',
-                                                    objectFit: 'cover'
-                                                }}
-                                            />
-                                        </div>
-                                    )}
                                 </Col>
                             </Row>
                         </div>

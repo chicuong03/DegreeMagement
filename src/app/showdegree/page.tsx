@@ -84,7 +84,7 @@ const CertificateDisplay = () => {
             borderRadius: '20px',
             boxShadow: '0 15px 35px rgba(0,0,0,0.6)',
             border: '2px solid #e0e6ed',
-            maxWidth: '900px',
+            maxWidth: '85%',
             width: '100%',
             overflow: 'hidden'
         },
@@ -100,7 +100,7 @@ const CertificateDisplay = () => {
         logoContainer: {
             width: '100px',
             height: '100px',
-            borderRadius: '50%',
+            //borderRadius: '50%',
             overflow: 'hidden',
             border: '3px solid white',
             display: 'flex',
@@ -151,6 +151,19 @@ const CertificateDisplay = () => {
         }
     };
 
+    const handleSaveCertificatev2 = () => {
+        const certificateElement = document.getElementById('certificate-containerv2');
+
+        if (certificateElement) {
+            html2canvas(certificateElement).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `${certificate?.studentName}_Certificate.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    };
+
     if (loading) return <div>Đang tải...</div>;
     if (error) return <div>{error}</div>;
     if (!certificate) return <div>Không tìm thấy bằng cấp</div>;
@@ -181,15 +194,16 @@ const CertificateDisplay = () => {
                             Số hiệu: {certificate.degreeNumber}
                         </span>
                     </div>
-                    {logoUrl && (
-                        <div style={certificateStyle.logoContainer}>
-                            <img
-                                src={logoUrl}
-                                alt="University Logo"
-                                style={certificateStyle.logo}
+                    <button style={{ borderRadius: '5px', borderStyle: 'none' }} onClick={handleSaveCertificate}>
+                        <div style={certificateStyle.logoContainer} id="certificate-container">
+                            <QRCodeCanvas
+                                value={blockchainLink}
+                                size={90}
+                                level="H"
                             />
+
                         </div>
-                    )}
+                    </button>
                 </div>
 
                 <div style={certificateStyle.content}>
@@ -197,7 +211,7 @@ const CertificateDisplay = () => {
                         <h2 style={{
                             textAlign: 'center',
                             color: '#d63031',
-                            fontSize: '1.5rem',
+                            fontSize: '2rem',
                             marginBottom: '30px'
                         }}>
                             {certificate.degreeType}
@@ -235,22 +249,36 @@ const CertificateDisplay = () => {
                         </div>
                     </div>
 
-                    <div style={certificateStyle.rightColumn}>
-                        <div id="certificate-container" style={certificateStyle.qrContainer}>
-                            <QRCodeCanvas
-                                value={blockchainLink}
-                                size={200}
-                                level="H"
-                            />
-                        </div>
+                    <div id="certificate-containerv2" style={certificateStyle.rightColumn}>
+                        {logoUrl && (
+                            <div style={{
+                                width: '100%',
+                                height: 'auto',
+                                aspectRatio: '16 / 11',
+                                borderRadius: '10px',
+                                overflow: 'hidden',
+                                border: '2px solid #e0e6ed',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                background: 'white',
+                                marginBottom: '20px',
+                                padding: '1px'
+                            }}>
+                                <button style={{ borderRadius: '5px', borderStyle: 'none' }} onClick={handleSaveCertificatev2}>
+                                    <img
+                                        src={logoUrl}
+                                        alt="University Logo"
+                                        style={{
+                                            maxWidth: '90%',
+                                            maxHeight: '90%',
+                                            objectFit: 'contain'
+                                        }}
+                                    />
+                                </button>
+                            </div>
+                        )}
 
-                        <p style={{
-                            textAlign: 'center',
-                            color: '#636e72',
-                            marginBottom: '10px'
-                        }}>
-                            Quét mã QR để xác thực
-                        </p>
 
                         <a
                             href={blockchainLink}
@@ -264,20 +292,6 @@ const CertificateDisplay = () => {
                         >
                             Xem trên CoinEx Blockchain
                         </a>
-                        <button
-                            onClick={handleSaveCertificate}
-                            style={{
-                                // marginTop: '1px',
-                                padding: '5px 5px',
-                                backgroundColor: '#3498db',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'grab'
-                            }}
-                        >
-                            Lưu QR
-                        </button>
                     </div>
                 </div>
             </div>
