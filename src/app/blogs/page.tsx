@@ -518,17 +518,17 @@ export default function BlogPage() {
                                                 <div className="flex gap-1">
                                                     <button
                                                         onClick={() => handleEdit(blog)}
-                                                        className="ml-4 p-1.5 text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 rounded transition"
+                                                        className="ml-4 p-1.5 text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 rounded transition me-2"
                                                         title="Sửa bài viết"
                                                     >
-                                                        <Icons.Pencil className="w-4 h-4" />
+                                                        <i className="fa-solid fa-pen-nib me-2"></i>
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(blog._id)}
-                                                        className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition"
+                                                        className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition "
                                                         title="Xóa bài viết"
                                                     >
-                                                        <Icons.Trash className="w-4 h-4" />
+                                                        <i className="fas fa-trash"></i>
                                                     </button>
                                                 </div>
                                             </div>

@@ -311,9 +311,11 @@ const ManageDegreesPage = () => {
                                                 <Button
                                                     variant="info"
                                                     size="sm"
+                                                    className='text-white hover'
                                                     onClick={() => handleShowDetails(certificate)}
                                                 >
-                                                    Chi Tiết
+                                                    <i className="fa-solid fa-eye me-1"></i>
+                                                    Detail
                                                 </Button>
                                             </td>
                                         </tr>
@@ -327,9 +329,65 @@ const ManageDegreesPage = () => {
                         <div className="d-flex justify-content-between align-items-center mb-3">
                             <h3>Loại bằng cấp</h3>
                             <Button variant="primary" onClick={() => setShowForm(true)}>
-                                ➕ Thêm Loại Bằng Cấp
+                                <i className="fa-solid fa-plus me-1"></i>
+                                {isEditing ? "Chỉnh sửa" : "Thêm Loại Bằng Cấp"}
                             </Button>
                         </div>
+                        {/* form thêm loại  */}
+                        {showForm && (
+                            <div style={formStyles.container}>
+                                <div style={formStyles.header}>
+                                    <h2 style={formStyles.title}>
+                                        {isEditing ? "Chỉnh sửa loại bằng cấp" : "Thêm loại bằng cấp"}
+                                    </h2>
+                                    <button
+                                        onClick={cancelEdit}
+                                        style={formStyles.closeButton}
+                                        onMouseOver={(e) => Object.assign(e.currentTarget.style, formStyles.closeButtonHover)}
+                                        onMouseOut={(e) => Object.assign(e.currentTarget.style, formStyles.closeButton)}
+                                        aria-label="Đóng"
+                                        className='bg-transparent'
+                                    >
+                                        <i className="fa-solid fa-circle-xmark"></i>
+                                    </button>
+                                </div>
+
+                                <form onSubmit={handleSubmit} style={formStyles.form}>
+                                    <div style={formStyles.formGroup}>
+                                        <label style={formStyles.label} htmlFor="degree-name">Tên loại bằng cấp</label>
+                                        <input
+                                            id="degree-name"
+                                            type="text"
+                                            placeholder="VD: Bằng Cử nhân"
+                                            value={form.degreetype_name}
+                                            onChange={(e) => setForm({ ...form, degreetype_name: e.target.value })}
+                                            required
+                                            style={formStyles.input}
+                                        />
+                                    </div>
+
+                                    <div style={formStyles.formGroup}>
+                                        <label style={formStyles.label} htmlFor="degree-note">Ghi chú / Mô tả</label>
+                                        <textarea
+                                            id="degree-note"
+                                            placeholder="Ghi chú thêm (nếu có)..."
+                                            value={form.degreetype_note}
+                                            onChange={(e) => setForm({ ...form, degreetype_note: e.target.value })}
+                                            style={formStyles.textarea}
+                                        ></textarea>
+                                    </div>
+
+                                    <div style={formStyles.buttonGroup}>
+                                        <button type="submit" className="btn btn-primary">
+                                            {isEditing ? "Cập nhật" : "Thêm mới"}
+                                        </button>
+                                        <button type="button" onClick={cancelEdit} className="btn btn-secondary ms-2">
+                                            Hủy
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        )}
                         <Table striped bordered hover responsive>
                             <thead>
                                 <tr>
@@ -351,17 +409,19 @@ const ManageDegreesPage = () => {
                                                 <Button
                                                     variant="warning"
                                                     size="sm"
-                                                    className="me-2"
+                                                    className="me-2 text-white"
                                                     onClick={() => handleEdit(type)}
                                                 >
-                                                    Sửa
+                                                    <i className="fa-solid fa-pen-nib me-1"></i>
+                                                    Edit
                                                 </Button>
                                                 <Button
                                                     variant="danger"
                                                     size="sm"
                                                     onClick={() => handleDelete(type._id)}
                                                 >
-                                                    Xóa
+                                                    <i className="fa-solid fa-trash me-1"></i>
+                                                    Del
                                                 </Button>
                                             </td>
                                         </tr>
@@ -374,8 +434,6 @@ const ManageDegreesPage = () => {
                             </tbody>
                         </Table>
                     </Col>
-
-
                 </Row>
 
                 {/* Modal Chi Tiết Bằng Cấp */}
@@ -410,64 +468,6 @@ const ManageDegreesPage = () => {
                         )}
                     </BootstrapModal.Body>
                 </BootstrapModal>
-
-                {/* form thêm loại  */}
-                {showForm && (
-                    <div style={formStyles.container}>
-                        <div style={formStyles.header}>
-                            <h2 style={formStyles.title}>
-                                {isEditing ? "Chỉnh sửa loại bằng cấp" : "Thêm loại bằng cấp"}
-                            </h2>
-                            <button
-                                onClick={cancelEdit}
-                                style={formStyles.closeButton}
-                                onMouseOver={(e) => Object.assign(e.currentTarget.style, formStyles.closeButtonHover)}
-                                onMouseOut={(e) => Object.assign(e.currentTarget.style, formStyles.closeButton)}
-                                aria-label="Đóng"
-                            >
-                                ✖
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} style={formStyles.form}>
-                            <div style={formStyles.formGroup}>
-                                <label style={formStyles.label} htmlFor="degree-name">Tên loại bằng cấp</label>
-                                <input
-                                    id="degree-name"
-                                    type="text"
-                                    placeholder="VD: Bằng Cử nhân"
-                                    value={form.degreetype_name}
-                                    onChange={(e) => setForm({ ...form, degreetype_name: e.target.value })}
-                                    required
-                                    style={formStyles.input}
-                                />
-                            </div>
-
-                            <div style={formStyles.formGroup}>
-                                <label style={formStyles.label} htmlFor="degree-note">Ghi chú / Mô tả</label>
-                                <textarea
-                                    id="degree-note"
-                                    placeholder="Ghi chú thêm (nếu có)..."
-                                    value={form.degreetype_note}
-                                    onChange={(e) => setForm({ ...form, degreetype_note: e.target.value })}
-                                    style={formStyles.textarea}
-                                ></textarea>
-                            </div>
-
-                            <div style={formStyles.buttonGroup}>
-                                <button type="submit" className="btn btn-primary">
-                                    {isEditing ? "Cập nhật" : "Thêm mới"}
-                                </button>
-                                <button type="button" onClick={cancelEdit} className="btn btn-secondary ms-2">
-                                    Hủy
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
-
-
-
             </Container>
         </div>
     );
@@ -527,6 +527,7 @@ const formStyles = {
         color: '#6b7280',
         padding: '6px',
         borderRadius: '50%',
+        border: 'none',
         cursor: 'pointer',
         transition: 'all 0.2s ease'
     },

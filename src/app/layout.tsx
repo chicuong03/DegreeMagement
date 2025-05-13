@@ -1,4 +1,5 @@
 'use client'
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Inter } from 'next/font/google';
 import Container from 'react-bootstrap/Container';

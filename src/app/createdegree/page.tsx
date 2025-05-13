@@ -450,13 +450,15 @@ export default function GrantCertificate() {
             <div className="d-flex justify-content-end mb-3">
                 {account ? (
                     <div>
-                        <span className="me-2 text-info">Đã kết nối: {account.substring(0, 6)}...{account.substring(account.length - 4)}</span>
-                        <Button variant="outline-secondary" onClick={disconnectWallet} size="sm">
+                        <span className="me-2 text-primary">Đã kết nối: {account.substring(0, 6)}...{account.substring(account.length - 4)}</span>
+                        <Button variant="primary" onClick={disconnectWallet} size="sm">
+                            <i className="fa-solid fa-plug-circle-minus me-2"></i>
                             Ngắt kết nối
                         </Button>
                     </div>
                 ) : (
                     <Button variant="secondary" onClick={connectWallet}>
+                        {<i className="fa-solid fa-plug me-2"></i>}
                         Kết nối MetaMask
                     </Button>
                 )}
@@ -700,9 +702,11 @@ export default function GrantCertificate() {
                                             <Button
                                                 variant="info"
                                                 size="sm"
+                                                className="text-white hover"
                                                 onClick={() => setSelectedCertificate(cert)}
                                             >
-                                                Xem
+                                                <i className="fa-solid fa-eye me-1"></i>
+                                                View
                                             </Button>
                                         </td>
                                     </tr>

@@ -818,12 +818,12 @@ const DegreeHistoryPage = () => {
                 </Col>
 
                 <Col md={10}>
-                    <h3 className="mb-4 mt-4">📜 Reports & Statisticsg</h3>
+                    <h3 className="my-4 text-success"><i className="fa-solid fa-chart-simple me-2"></i> Reports & Statistics</h3>
                     <Row className="mb-4">
                         <Col md={4}>
                             <Card>
                                 <Card.Body className="text-center ">
-                                    <Card.Title>🏫 Tổng Số Trường Đại Học Đã Đăng Kí</Card.Title>
+                                    <Card.Title><i className="fa-solid fa-school"></i> Tổng Số Trường Đại Học Đã Đăng Kí</Card.Title>
                                     <h2 className="text-info">{totalUniversities}</h2>
                                 </Card.Body>
                             </Card>
@@ -831,7 +831,7 @@ const DegreeHistoryPage = () => {
                         <Col md={4}>
                             <Card>
                                 <Card.Body className="text-center">
-                                    <Card.Title>📜 Tổng Số Bằng Cấp Đã Phát Hành</Card.Title>
+                                    <Card.Title> <i className="fa-solid fa-pager"></i> Tổng Số Bằng Cấp Đã Phát Hành</Card.Title>
                                     <h2 className="text-primary">{totalIssuedDegrees}</h2>
                                 </Card.Body>
                             </Card>
@@ -839,7 +839,7 @@ const DegreeHistoryPage = () => {
                         <Col md={4}>
                             <Card>
                                 <Card.Body className="text-center">
-                                    <Card.Title>📊 Trung Bình Bằng Cấp/Trường</Card.Title>
+                                    <Card.Title><i className="fa-solid fa-chart-simple"></i> Trung Bình Bằng Cấp / Trường</Card.Title>
                                     <h2 className="text-success">{(totalIssuedDegrees / totalUniversities).toFixed(2)}</h2>
                                 </Card.Body>
                             </Card>
@@ -882,16 +882,19 @@ const DegreeHistoryPage = () => {
                     {/* Xuất dữ liệu */}
                     <div className="d-flex mb-3">
                         <Button variant="success" onClick={exportToCSV}>
-                            📂 Xuất CSV
+                            <i className="fa-solid fa-file-csv me-1"></i>
+                            Xuất CSV
                         </Button>
                         <Button variant="danger" className="ms-2" onClick={exportToPDF}>
-                            📑 Xuất PDF
+                            <i className="fa-solid fa-file-pdf me-1"></i>
+                            Xuất PDF
                         </Button>
                         <Button variant="primary" className="ms-2" onClick={exportDashboardReport}>
-                            📊 Báo cáo tổng quan
+                            <i className="fa-solid fa-chart-simple me-1"></i>
+                            Báo cáo tổng quan
                         </Button>
                         {/* <Button variant="info" className="ms-2" onClick={exportTrendReport}>
-                            📈 Báo cáo xu hướng
+                            📈 Báo cá      o xu hướng
                         </Button> */}
                     </div>
 
@@ -925,8 +928,9 @@ const DegreeHistoryPage = () => {
                                         <td className="text-center align-middle">{history.graduationDate}</td>
                                         <td className="text-center align-middle">{history.score}</td>
                                         <td className="text-center align-middle">
-                                            <Button variant="info" size="sm" onClick={() => handleShowDetails(history)}>
-                                                🔍 Xem
+                                            <Button className="text-white" variant="info" size="sm" onClick={() => handleShowDetails(history)}>
+                                                <i className="fa-solid fa-eye me-1"></i>
+                                                Xem
                                             </Button>
                                         </td>
                                     </tr>
@@ -941,7 +945,10 @@ const DegreeHistoryPage = () => {
 
 
                     <div>
-                        <h4>📊 Lựa Chọn Thống Kê</h4>
+                        <h4 className="text-success">
+                            <i className="fa-solid fa-chart-simple me-1"></i>
+                            Lựa Chọn Thống Kê
+                        </h4>
                         <Form.Select
                             value={selectedChart}
                             onChange={(e) => setSelectedChart(e.target.value)}

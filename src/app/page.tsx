@@ -301,24 +301,26 @@ export default function Home() {
                 </thead>
                 <tbody>
                   {Array.isArray(auditLogs) && auditLogs.length > 0 ? (
-                    auditLogs.map((log, index) => (
-                      <tr
-                        key={log._id}
-                        style={{
-                          backgroundColor: index % 2 === 0 ? '#fff5eb' : '#ffe0cc',
-                          border: 'none',
-                          transition: 'background-color 0.2s'
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffcc99' }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#fff5eb' : '#ffe0cc' }}
-                      >
-                        <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log._id}</td>
-                        <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log.certificate}</td>
-                        <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log.action}</td>
-                        <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log.performed_by}</td>
-                        <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{new Date(log.timestamp).toLocaleString()}</td>
-                      </tr>
-                    ))
+                    auditLogs
+                      .sort((a, b) => (Number(b.certificate) || 0) - (Number(a.certificate) || 0))
+                      .map((log, index) => (
+                        <tr
+                          key={log._id}
+                          style={{
+                            backgroundColor: index % 2 === 0 ? '#fff5eb' : '#ffe0cc',
+                            border: 'none',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffcc99' }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#fff5eb' : '#ffe0cc' }}
+                        >
+                          <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log._id}</td>
+                          <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log.certificate}</td>
+                          <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log.action}</td>
+                          <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{log.performed_by}</td>
+                          <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '8px', border: 'none' }}>{new Date(log.timestamp).toLocaleString()}</td>
+                        </tr>
+                      ))
                   ) : (
                     <tr>
                       <td colSpan={5} style={{ textAlign: 'center', color: '#6c757d', padding: '10px', border: 'none' }}>No data available</td>

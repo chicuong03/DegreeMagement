@@ -345,11 +345,20 @@ const ManageUniversitiesPage = () => {
                             <h3>Quản Lý Trường</h3>
                             <div className="d-flex gap-2">
                                 <Button
-                                    variant={isConnected ? "success" : "primary"}
+                                    variant={isConnected ? "primary" : "secondary"}
                                     onClick={connectWallet}
+                                    className="d-flex align-items-center"
                                 >
-                                    {isConnected ? "Đã Kết Nối Ví" : "Kết Nối Ví"}
+                                    {/* Icon bên trái thay đổi tùy theo trạng thái kết nối */}
+                                    <i className={`fa-solid ${isConnected ? "fa-plug-circle-check" : "fa-plug"} me-2`}></i>
+
+                                    {/* Text */}
+                                    <span>{isConnected ? "Đã Kết Nối Ví" : "Kết Nối Ví"}</span>
+
+                                    {/* Icon bên phải tùy chọn (nếu cần) */}
+                                    <i className={`fa-solid ${isConnected ? "fa-circle-check" : "fa-circle-exclamation"} ms-2`}></i>
                                 </Button>
+
                                 <Button
                                     variant="success"
                                     onClick={() => setShowAddUniversityModal(true)}
@@ -402,8 +411,10 @@ const ManageUniversitiesPage = () => {
                                                     <Button
                                                         variant="warning"
                                                         size="sm"
+                                                        className='text-white'
                                                         onClick={() => handleShowEditModal(university)}
                                                     >
+                                                        <i className="fa-solid fa-pen-nib"></i>
                                                         Sửa
                                                     </Button>
                                                     <Button
@@ -411,6 +422,7 @@ const ManageUniversitiesPage = () => {
                                                         size="sm"
                                                         onClick={() => handleDeleteUniversity(university._id!)}
                                                     >
+                                                        <i className="fas fa-trash"></i>
                                                         Xóa
                                                     </Button>
                                                     <Button
@@ -422,6 +434,7 @@ const ManageUniversitiesPage = () => {
                                                             setShowGrantPermissionModal(true);
                                                         }}
                                                     >
+                                                        <i className="fa-solid fa-square-plus me-1"></i>
                                                         Cấp Quyền
                                                     </Button>
                                                     <Button
@@ -433,6 +446,7 @@ const ManageUniversitiesPage = () => {
                                                             setShowRevokePermissionModal(true);
                                                         }}
                                                     >
+                                                        <i className="fa-solid fa-user-slash"></i>
                                                         Thu Hồi
                                                     </Button>
                                                 </div>
@@ -531,12 +545,10 @@ const ManageUniversitiesPage = () => {
                                 </Col>
                             </Row>
                             <Button variant="primary" type="submit">Thêm Trường</Button>
-                            <Button variant="secondary" onClick={() => setShowAddUniversityModal(false)}>Đóng</Button>
+                            <Button className='ms-2' variant="secondary" onClick={() => setShowAddUniversityModal(false)}>Đóng</Button>
                         </Form>
                     </BootstrapModal.Body>
                 </BootstrapModal>
-
-
 
                 {/* Modal Sửa Trường */}
                 <BootstrapModal show={showEditUniversityModal} onHide={closeModals} size="lg">
@@ -592,7 +604,6 @@ const ManageUniversitiesPage = () => {
                 </BootstrapModal>
 
 
-
                 <BootstrapModal
                     show={showCertificatesModal}
                     onHide={() => setShowCertificatesModal(false)}
@@ -635,7 +646,7 @@ const ManageUniversitiesPage = () => {
                     </BootstrapModal.Body>
                 </BootstrapModal>
 
-                {/* 🔹 Modal Cấp Quyền */}
+                {/*  Modal Cấp Quyền */}
                 <BootstrapModal
                     show={showGrantPermissionModal}
                     onHide={() => {
@@ -675,6 +686,7 @@ const ManageUniversitiesPage = () => {
                     <BootstrapModal.Footer>
                         <Button
                             variant="secondary"
+                            className='me-2'
                             onClick={() => {
                                 setShowGrantPermissionModal(false);
                                 setSelectedUniversity(null);
@@ -751,9 +763,6 @@ const ManageUniversitiesPage = () => {
                         </Button>
                     </BootstrapModal.Footer>
                 </BootstrapModal>
-
-
-
             </Container>
         </div>
     );

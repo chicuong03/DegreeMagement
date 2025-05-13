@@ -309,9 +309,10 @@ const AdminPage = () => {
                                                         <Button
                                                             variant="warning"
                                                             size="sm"
-                                                            className="me-2"
+                                                            className="me-2 hover-shadow text-white"
                                                             onClick={() => handleEditClick(user)}
                                                         >
+                                                            <i className="fa-solid fa-pen-nib me-1"></i>
                                                             Edit
                                                         </Button>
                                                         <Button
@@ -319,6 +320,7 @@ const AdminPage = () => {
                                                             size="sm"
                                                             onClick={() => handleDeleteUser(user._id)}
                                                         >
+                                                            <i className="fas fa-trash me-1"></i>
                                                             Delete
                                                         </Button>
                                                     </td>
@@ -328,59 +330,68 @@ const AdminPage = () => {
                                 </Table>
                             )}
                         </div>
-                        <h3>Thêm Người Dùng</h3>
-                        <Form onSubmit={handleAddUser}>
-                            <Row>
-                                <Col md={3}>
-                                    <Form.Group controlId="formName">
-                                        <Form.Label>Tên</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="Nhập tên"
-                                            name="name"
-                                            required
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={3}>
-                                    <Form.Group controlId="formEmail">
-                                        <Form.Label>Email</Form.Label>
-                                        <Form.Control
-                                            type="email"
-                                            placeholder="Nhập email"
-                                            name="email"
-                                            required
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={3}>
-                                    <Form.Group controlId="formPassword">
-                                        <Form.Label>Mật khẩu</Form.Label>
-                                        <Form.Control
-                                            type="password"
-                                            placeholder="Nhập mật khẩu"
-                                            name="password"
-                                            required
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={3}>
-                                    <Form.Group controlId="formRole">
-                                        <Form.Label>Vai trò</Form.Label>
-                                        <Form.Select name="role" required>
-                                            <option value="">Chọn vai trò</option>
-                                            <option value="admin">Quản trị</option>
-                                            <option value="university">Trường Học</option>
-                                            <option value="student">Học viên</option>
-                                            <option value="recruiter">Nhà tuyển dụng</option>
-                                        </Form.Select>
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                            <Button variant="primary" type="submit" className="mt-3">
-                                Thêm Người Dùng
-                            </Button>
-                        </Form>
+                        {/* <h3 className='mt-3 text-primary'>Thêm Người Dùng</h3> */}
+
+
+                        <Card className='my-3 shadow-sm'>
+                            <Card.Header>
+                                <h3 className='mt-3 text-primary'>Thêm Người Dùng</h3>
+                            </Card.Header>
+                            <Card.Body>
+                                <Form onSubmit={handleAddUser}>
+                                    <Row>
+                                        <Col md={3}>
+                                            <Form.Group controlId="formName">
+                                                <Form.Label>Tên</Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    placeholder="Nhập tên"
+                                                    name="name"
+                                                    required
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col md={3}>
+                                            <Form.Group controlId="formEmail">
+                                                <Form.Label>Email</Form.Label>
+                                                <Form.Control
+                                                    type="email"
+                                                    placeholder="Nhập email"
+                                                    name="email"
+                                                    required
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col md={3}>
+                                            <Form.Group controlId="formPassword">
+                                                <Form.Label>Mật khẩu</Form.Label>
+                                                <Form.Control
+                                                    type="password"
+                                                    placeholder="Nhập mật khẩu"
+                                                    name="password"
+                                                    required
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col md={3}>
+                                            <Form.Group controlId="formRole">
+                                                <Form.Label>Vai trò</Form.Label>
+                                                <Form.Select name="role" required>
+                                                    <option value="">Chọn vai trò</option>
+                                                    <option value="admin">Quản trị</option>
+                                                    <option value="university">Trường Học</option>
+                                                    <option value="student">Học viên</option>
+                                                    <option value="recruiter">Nhà tuyển dụng</option>
+                                                </Form.Select>
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                    <Button variant="primary" type="submit" className="my-3 shadow-sm">
+                                        Thêm Người Dùng
+                                    </Button>
+                                </Form>
+                            </Card.Body>
+                        </Card>
                     </Col>
                 </Row>
 

@@ -148,7 +148,7 @@ const UniversityKYCPage = () => {
                 <form onSubmit={handleSubmit} style={kycStyles.form}>
                     <div style={kycStyles.formRow}>
                         <div style={kycStyles.formColumn}>
-                            <label style={kycStyles.label}>🏫 Tên Trường</label>
+                            <label style={kycStyles.label}><i className="fa-solid fa-school me-2"></i> Tên Trường</label>
                             <input
                                 type="text"
                                 name="name"
@@ -159,7 +159,7 @@ const UniversityKYCPage = () => {
                             />
                         </div>
                         <div style={kycStyles.formColumn}>
-                            <label style={kycStyles.label}>🔢 Mã Đăng Ký</label>
+                            <label style={kycStyles.label}><i className="fa-solid fa-barcode me-2"></i> Mã Đăng Ký</label>
                             <input
                                 type="text"
                                 name="registrationNumber"
@@ -173,7 +173,7 @@ const UniversityKYCPage = () => {
 
                     <div style={kycStyles.formRow}>
                         <div style={kycStyles.formColumn}>
-                            <label style={kycStyles.label}>📧 Email</label>
+                            <label style={kycStyles.label}><i className="fa-solid fa-envelope me-2"></i> Email</label>
                             <input
                                 type="email"
                                 name="email"
@@ -184,7 +184,7 @@ const UniversityKYCPage = () => {
                             />
                         </div>
                         <div style={kycStyles.formColumn}>
-                            <label style={kycStyles.label}>📞 Số Điện Thoại</label>
+                            <label style={kycStyles.label}><i className="fa-solid fa-phone me-2"></i> Số Điện Thoại</label>
                             <input
                                 type="text"
                                 name="phone"
@@ -197,7 +197,7 @@ const UniversityKYCPage = () => {
                     </div>
 
                     <div style={{ marginBottom: '20px' }}>
-                        <label style={kycStyles.label}>📍 Địa Chỉ</label>
+                        <label style={kycStyles.label}><i className="fa-solid fa-location-dot me-2"></i> Địa Chỉ</label>
                         <textarea
                             name="address"
                             value={formData.address}
@@ -213,7 +213,7 @@ const UniversityKYCPage = () => {
 
                     <div style={kycStyles.formRow}>
                         <div style={kycStyles.formColumn}>
-                            <label style={kycStyles.label}>👤 Tên Đại Diện</label>
+                            <label style={kycStyles.label}><i className="fa-solid fa-user"></i> Tên Đại Diện</label>
                             <input
                                 type="text"
                                 name="representativeName"
@@ -224,7 +224,7 @@ const UniversityKYCPage = () => {
                             />
                         </div>
                         <div style={kycStyles.formColumn}>
-                            <label style={kycStyles.label}>🏅 Chức Vụ</label>
+                            <label style={kycStyles.label}><i className="fa-solid fa-medal"></i> Chức Vụ</label>
                             <input
                                 type="text"
                                 name="representativePosition"
@@ -238,7 +238,7 @@ const UniversityKYCPage = () => {
 
                     <div style={kycStyles.formRow}>
                         <div style={kycStyles.formColumn}>
-                            <label style={kycStyles.label}>📜 Giấy Phép Hoạt Động</label>
+                            <label style={kycStyles.label}><i className="fa-solid fa-pager"></i> Giấy Phép Hoạt Động</label>
                             <input
                                 type="text"
                                 name="license"
@@ -250,7 +250,7 @@ const UniversityKYCPage = () => {
                             />
                         </div>
                         <div style={kycStyles.formColumn}>
-                            <label style={kycStyles.label}>🆔 CCCD Đại Diện </label>
+                            <label style={kycStyles.label}><i className="fa-solid fa-id-card"></i> CCCD Đại Diện </label>
                             <input
                                 type="text"
                                 name="idCard"

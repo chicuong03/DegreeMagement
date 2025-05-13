@@ -174,6 +174,7 @@ export default function UniversityKYCManagement() {
                                                                 size="sm"
                                                                 onClick={() => openDetailsModal(university)}
                                                             >
+                                                                <i className="fa-solid fa-eye me-1"></i>
                                                                 Chi Tiết
                                                             </Button>
                                                             <Button
@@ -181,6 +182,7 @@ export default function UniversityKYCManagement() {
                                                                 size="sm"
                                                                 onClick={() => handleKYCAction(university._id, 'reject')}
                                                             >
+                                                                <i className="fa-solid fa-ban me-1"></i>
                                                                 Từ Chối
                                                             </Button>
                                                             <Button
@@ -188,6 +190,7 @@ export default function UniversityKYCManagement() {
                                                                 size="sm"
                                                                 onClick={() => handleKYCAction(university._id, 'approve')}
                                                             >
+                                                                <i className="fa-solid fa-check me-1"></i>
                                                                 Phê Duyệt
                                                             </Button>
                                                         </div>
