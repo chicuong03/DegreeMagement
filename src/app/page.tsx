@@ -1,9 +1,9 @@
 'use client';
 
+import Head from 'next/head';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Table } from 'react-bootstrap';
-
 interface AuditLog {
   _id: string;
   certificate: number;
@@ -50,183 +50,411 @@ export default function Home() {
 
   return (
     <div style={homeStyle.container}>
-      {/* Nền với gradient và hiệu ứng parallax */}
-
-
-      <section className="mt-3" style={homeStyle.hero}>
-        <div id="parallax-bg" style={homeStyle.parallax}>
-          <div style={homeStyle.parallaxOverlay}></div>
+      <Head>
+        <title>EduChain - Blockchain-Powered Education Platform</title>
+      </Head>
+      {/* Modern Hero Section with CoinEx Integration */}
+      <section className="hero-section">
+        <div className="hero-background">
+          <div className="gradient-overlay"></div>
+          <div className="pattern-overlay"></div>
         </div>
-        <style jsx global>{`
-          @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-          }
-          
-          @keyframes fade-in {
-            0% { opacity: 0; transform: translateY(20px); }
-            100% { opacity: 1; transform: translateY(0); }
-          }
-          
-          @keyframes shine {
-            0% { background-position: -100% 0; }
-            100% { background-position: 200% 0; }
-          }
-          
-          .hero-image-container {
-            position: relative;
-            overflow: hidden;
-            border-radius: 12px;
-            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-          }
-          
-          .hero-image-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-          }
-          
-          .hero-image {
-            width: 100%;
-            height: auto;
-            transition: transform 0.6s ease;
-          }
-          
-          .hero-image-container:hover .hero-image {
-            transform: scale(1.05);
-          }
-          
-          .hero-content-item {
-            animation: fade-in 0.8s ease-out forwards;
-            opacity: 0;
-          }
-          
-          .hero-title {
-            animation-delay: 0.2s;
-          }
-          
-          .hero-subtitle {
-            animation-delay: 0.4s;
-          }
-          
-          .hero-button-container {
-            animation-delay: 0.6s;
-          }
-          
-          .shine-button {
-            position: relative;
-            overflow: hidden;
-          }
-          
-          .shine-button:after {
-            content: '';
+
+        <div className="hero-content">
+          <div className="hero-text">
+            <h1 className="hero-title">
+              <span className="gradient-text">EDU Chain</span>
+              <br />
+              Quản Lý Bằng Cấp
+            </h1>
+            <p className="hero-subtitle">
+              Giải pháp quản lý bằng cấp thế hệ mới với công nghệ blockchain,
+              đảm bảo tính minh bạch và bảo mật tuyệt đối.
+            </p>
+            <div className="hero-buttons">
+              <Link href="/verify" >
+                <button className="secondary-button">
+                  <span className="button-icon">🔍</span>
+                  Tra Cứu Ngay
+                </button>
+                {/* Tra Cứu Ngay */}
+              </Link>
+              <Link href="/" >
+                <button className="secondary-button">
+                  <span className="button-icon">🔑</span>
+                  Đăng Nhập
+                </button>
+                {/* Đăng Nhập */}
+              </Link>
+            </div>
+            <div className="chain-info">
+              <div className="chain-badge">
+                <img src="/images/coinex-logo.svg" alt="CoinEx" className="chain-logo" />
+                <span>CoinEx Smart Chain Testnet</span>
+              </div>
+              <div className="chain-address">
+                <span>Contract: 0x288887A325a73497912f34e126A47A5383cE7f69</span>
+                <button className="copy-button" onClick={() => navigator.clipboard.writeText('0x288887A325a73497912f34e126A47A5383cE7f69')}>
+                  Copy
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="hero-visual">
+            <div className="floating-elements">
+              <div className="floating-card card-1">
+                <img src="/images/certificate.png" alt="Certificate" />
+              </div>
+              <div className="floating-card card-2">
+                <img src="/images/blockchain.png" alt="Blockchain" />
+              </div>
+              <div className="floating-card card-3">
+                <img src="/images/security.png" alt="Security" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <style jsx>{`
+         .hero-section {
+          position: relative;
+          min-height: 30vh;
+          padding: 20px 0;
+          overflow: hidden;
+          background: #1a1a1a;
+          width: 100vw;
+          margin-left: calc(-50vw + 50%);
+          margin-right: calc(-50vw + 50%);
+          left: 0;
+          right: 0;
+          box-sizing: border-box;
+          position: relative;
+          z-index: 1;
+        }
+
+          .hero-background {
             position: absolute;
             top: 0;
             left: 0;
-            width: 200%;
+            width: 100vw;
+            height: 100%;
+            z-index: 1;
+          }
+
+          .gradient-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+          }
+
+          .pattern-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+          }
+
+          .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+            padding: 20px 40px;
+            width: 100%;
+            box-sizing: border-box;
+          }
+
+          .hero-text {
+            color: #ffffff;
+          }
+
+          .hero-title {
+            font-size: 4rem;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            font-weight: 800;
+          }
+
+          .gradient-text {
+            background: linear-gradient(45deg, #9abbdb, #4a90e2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+          }
+
+          .hero-subtitle {
+            font-size: 1.2rem;
+            color: #e0e0e0;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+          }
+
+          .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+          }
+
+          .primary-button {
+            background: #1E2329;
+            color: white;
+            padding: 1.2rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(30, 35, 41, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+          }
+
+          .primary-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
             height: 100%;
             background: linear-gradient(
-              to right, 
-              rgba(255, 255, 255, 0) 0%,
-              rgba(255, 255, 255, 0.3) 50%,
-              rgba(255, 255, 255, 0) 100%
+              120deg,
+              transparent,
+              rgba(255, 255, 255, 0.1),
+              transparent
             );
-            transform: skewX(-20deg);
-            animation: shine 3s infinite;
-            background-size: 200% 100%;
+            transition: 0.5s;
           }
-          
-          .floating-image-left {
+
+          .primary-button:hover:before {
+            left: 100%;
+          }
+
+          .primary-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 35, 41, 0.4);
+            background: #2C3E50;
+          }
+
+          .button-icon {
+            transition: transform 0.3s ease;
+            font-size: 1.2rem;
+          }
+
+          .primary-button:hover .button-icon {
+            transform: translateX(4px);
+          }
+
+          .secondary-button {
+            background: rgba(30, 35, 41, 0.1);
+            color: #fff;
+            padding: 1.2rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+          }
+
+          .secondary-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+              120deg,
+              transparent,
+              rgba(255, 255, 255, 0.1),
+              transparent
+            );
+            transition: 0.5s;
+          }
+
+          .secondary-button:hover:before {
+            left: 100%;
+          }
+
+          .secondary-button:hover {
+            background: rgba(30, 35, 41, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+          }
+
+          .chain-info {
+            background: rgba(154, 187, 219, 0.05);
+            border-radius: 12px;
+            padding: 1.2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(154, 187, 219, 0.1);
+          }
+
+          .chain-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+          }
+
+          .chain-logo {
+            width: 28px;
+            height: 28px;
+            filter: brightness(0) invert(1);
+          }
+
+          .chain-address {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.9rem;
+            color: #9abbdb;
+          }
+
+          .copy-button {
+            background: rgba(154, 187, 219, 0.1);
+            border: 1px solid rgba(154, 187, 219, 0.3);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            color: #9abbdb;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+          }
+
+          .copy-button:hover {
+            background: rgba(154, 187, 219, 0.2);
+            border-color: rgba(154, 187, 219, 0.5);
+            transform: translateY(-1px);
+          }
+
+          .hero-visual {
+            position: relative;
+            height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .floating-elements {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .floating-card {
+            position: absolute;
+            background: rgba(154, 187, 219, 0.05);
+            border-radius: 20px;
+            padding: 1.2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(154, 187, 219, 0.1);
+            border: 1px solid rgba(154, 187, 219, 0.1);
+            transition: all 0.3s ease;
+          }
+
+          .floating-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(154, 187, 219, 0.15);
+          }
+
+          .floating-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+          }
+
+          .card-1 {
+            top: 15%;
+            left: 10%;
+            width: 220px;
             animation: float 6s ease-in-out infinite;
+            z-index: 3;
           }
-          
-          .floating-image-right {
-            animation: float 6s ease-in-out 2s infinite;
+
+          .card-2 {
+            top: 35%;
+            right: 10%;
+            width: 200px;
+            animation: float 8s ease-in-out infinite;
+            z-index: 2;
+          }
+
+          .card-3 {
+            bottom: 15%;
+            left: 25%;
+            width: 180px;
+            animation: float 7s ease-in-out infinite;
+            z-index: 1;
+          }
+
+          @keyframes float {
+            0%, 100% {
+              transform: translateY(0) rotate(0deg);
+            }
+            50% {
+              transform: translateY(-20px) rotate(2deg);
+            }
+          }
+
+          @media (max-width: 768px) {
+            .hero-section {
+              padding: 15px 0;
+            }
+
+            .hero-content {
+              padding: 15px 40px;
+            }
+
+            .hero-title {
+              font-size: 3rem;
+            }
+
+            .hero-buttons {
+              justify-content: center;
+              flex-wrap: wrap;
+            }
+
+            .hero-visual {
+              height: 400px;
+            }
+
+            .floating-card {
+              position: relative;
+              margin: 1rem auto;
+              width: 200px !important;
+            }
+
+            .card-1, .card-2, .card-3 {
+              position: relative;
+              top: auto;
+              left: auto;
+              right: auto;
+              bottom: auto;
+            }
           }
         `}</style>
-
-        <div style={homeStyle.heroContainer}>
-          <div style={homeStyle.heroImageLeft} className="hero-image-container floating-image-left">
-            <a
-              href="https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: 'block', width: '100%', height: '100%', cursor: 'pointer' }}
-            >
-              <img
-                src="/images/bn1.jpg"
-                alt="Blockchain Certificate"
-                style={homeStyle.heroImage}
-                className="hero-image"
-              />
-              <div style={homeStyle.imageOverlay}></div>
-            </a>
-          </div>
-
-          {/* Phần nội dung chính */}
-          <div style={homeStyle.heroContent}>
-            <h1 style={homeStyle.heroTitle} className="hero-content-item hero-title">
-              Quản Lý Bằng Cấp Với Công Nghệ Blockchain
-            </h1>
-            <p style={homeStyle.heroSubtitle} className="hero-content-item hero-subtitle">
-              Đảm bảo tính minh bạch, bảo mật và hiện đại hóa quy trình quản lý thông tin.
-            </p>
-            <div className="hero-content-item hero-button-container">
-              <Link href="/">
-                <button style={homeStyle.ctaButton} className="shine-button">
-                  Bắt đầu ngay
-                </button>
-              </Link>
-            </div>
-            <div style={homeStyle.statsBadges} className="hero-content-item">
-              <div style={homeStyle.badge}>
-                <span style={homeStyle.badgeIcon}>🔒</span>
-                <span style={homeStyle.badgeText}>Bảo mật</span>
-              </div>
-              <div style={homeStyle.badge}>
-                <span style={homeStyle.badgeIcon}>⚡</span>
-                <span style={homeStyle.badgeText}>Tốc độ</span>
-              </div>
-              <div style={homeStyle.badge}>
-                <span style={homeStyle.badgeIcon}>🌐</span>
-                <span style={homeStyle.badgeText}>Toàn cầu</span>
-              </div>
-            </div>
-          </div>
-
-          <div style={homeStyle.heroImageRight} className="hero-image-container floating-image-right">
-            <a
-              href="https://testnet.coinex.net/token/0x288887A325a73497912f34e126A47A5383cE7f69"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: 'block', width: '100%', height: '100%', cursor: 'pointer' }}
-            >
-              <img
-                src="/images/bn2.jpg"
-                alt="Digital Certificate"
-                style={homeStyle.heroImage}
-                className="hero-image"
-              />
-              <div style={homeStyle.imageOverlay}></div>
-            </a>
-          </div>
-        </div>
-
-        <div style={homeStyle.heroWave}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 1440 120"
-            preserveAspectRatio="none"
-            style={{ width: '100%', height: '120px', display: 'block' }}
-          >
-            <path
-              fill="#ffffff"
-              fillOpacity="1"
-              d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"
-            ></path>
-          </svg>
-        </div>
       </section>
 
       <div className="auditLog">
@@ -434,7 +662,7 @@ const homeStyle: { [key: string]: React.CSSProperties } = {
   container: {
     position: 'relative',
     minHeight: '100vh',
-    overflow: 'hidden',
+    overflow: 'visible',
     fontFamily: '"Segoe UI", Roboto, "Helvetica Neue", sans-serif',
   },
   parallax: {

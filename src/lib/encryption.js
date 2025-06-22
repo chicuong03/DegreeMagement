@@ -1,4 +1,4 @@
-// lib/encryption.js
+
 import CryptoJS from 'crypto-js';
 
 const SECRET_KEY = process.env.ENCRYPTION_SECRET || 'default_secret_key';

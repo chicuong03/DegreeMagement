@@ -1,12 +1,12 @@
 'use client';
 
 import { Github } from "lucide-react";
+import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button, Container, Dropdown, Nav, Navbar } from 'react-bootstrap';
-
 function Header() {
     const [userRole, setUserRole] = useState<string | null>(null);
     const [userName, setUserName] = useState<string | null>(null);
@@ -90,6 +90,9 @@ function Header() {
             }}
             className={scrolled ? 'navbar-scrolled' : ''}
         >
+            <Head>
+                <title>EduChain - Blockchain-Powered Education Platform</title>
+            </Head>
             <Container>
                 <Navbar.Brand>
                     <Link href="/" className="navbar-brand d-flex align-items-center" style={navbarStyle.brand}>
@@ -129,7 +132,7 @@ function Header() {
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto" style={navbarStyle.nav}>
                         {[
-                            { path: '/universityKYC', name: 'KYC', protected: true },
+                            { path: '/universityKYC', name: 'KYC', protected: false },
                             { path: '/blogviewer', name: 'Blogs', protected: true },
                             { path: '/verify', name: 'Tra Cứu', protected: false },
                             ...(userRole === 'admin' || userRole === 'university' ? [{ path: '/createdegree', name: 'Cấp Bằng', protected: false }] : []),
@@ -397,6 +400,7 @@ const navbarStyle: { [key: string]: React.CSSProperties } = {
         background: 'linear-gradient(90deg, #4A90E2, #50E3C2)',
         padding: '10px 0',
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     },
     brand: {
         fontWeight: 'bold',
@@ -405,6 +409,7 @@ const navbarStyle: { [key: string]: React.CSSProperties } = {
         textDecoration: 'none',
         display: 'flex',
         alignItems: 'center',
+        transition: 'transform 0.3s ease',
     },
     nav: {
         alignItems: 'center',
@@ -414,8 +419,9 @@ const navbarStyle: { [key: string]: React.CSSProperties } = {
         fontSize: '1rem',
         margin: '0 10px',
         textDecoration: 'none',
-        transition: 'all 0.3s ease',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         position: 'relative',
+        padding: '5px 0',
     },
     buttonGroup: {
         display: 'flex',
@@ -429,6 +435,7 @@ const navbarStyle: { [key: string]: React.CSSProperties } = {
         padding: '8px 15px',
         borderRadius: '20px',
         boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     },
 };
 
@@ -440,17 +447,39 @@ const globalStyle = `
   100% { transform: scale(1); }
 }
 
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
+
+.logo-container {
+  animation: float 3s ease-in-out infinite;
+}
+
 .logo-container:hover .logo-image {
   transform: scale(1.1) rotate(5deg);
+  filter: brightness(1.1);
+}
+
+.contact-button {
+  position: relative;
+  overflow: hidden;
 }
 
 .contact-button:hover {
-  animation: pulse 1.5s infinite;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.contact-button:active {
+  transform: translateY(0);
 }
 
 .navbar-scrolled {
   backdrop-filter: blur(8px);
-  background: linear-gradient(90deg, rgba(74, 144, 226, 0.9), rgba(80, 227, 194, 0.9)) !important;
+  background: linear-gradient(90deg, rgba(74, 144, 226, 0.95), rgba(80, 227, 194, 0.95)) !important;
+  padding: 5px 0;
 }
 
 @keyframes fadeIn {
@@ -459,7 +488,42 @@ const globalStyle = `
 }
 
 .animate__fadeIn {
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: #FFD700;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.dropdown-menu {
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top;
+}
+
+.dropdown-item {
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(74, 144, 226, 0.1);
+  transform: translateX(5px);
 }
 `;
 

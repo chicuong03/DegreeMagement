@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { Button, Col, Container, Form, Row, Spinner, Tab, Tabs } from "react-bootstrap";
+import { Button, Col, Container, Form, Row, Tab, Tabs } from "react-bootstrap";
 import { toast } from "react-toastify";
+import LoadingPage from "../components/LoadingPage";
 
 const AuthPage = () => {
     const [key, setKey] = useState("login");
@@ -97,21 +98,7 @@ const AuthPage = () => {
 
     return (
         <Container fluid style={authStyle.container}>
-            {loading && (
-                <div style={authStyle.overlay}>
-                    <div style={authStyle.spinnerContainer}>
-                        <Spinner animation="grow" variant="primary" />
-                        <Spinner animation="grow" variant="secondary" />
-                        <Spinner animation="grow" variant="success" />
-                        <Spinner animation="grow" variant="danger" />
-                        <Spinner animation="grow" variant="warning" />
-                        <Spinner animation="grow" variant="info" />
-                        <Spinner animation="grow" variant="light" />
-                        <Spinner animation="grow" variant="dark" />
-                        <p className="mt-2 text-white">Đang xử lý...</p>
-                    </div>
-                </div>
-            )}
+            {loading && <LoadingPage />}
             <Row className="justify-content-center align-items-center" style={authStyle.fullHeight}>
                 <Col xs={12} sm={10} md={8} lg={6} xl={5}>
                     <div style={authStyle.card}>
@@ -219,25 +206,10 @@ const AuthPage = () => {
 };
 
 const authStyle: { [key: string]: React.CSSProperties } = {
-    container: { backgroundColor: "#f8f9fa", minHeight: "100vh" },
+    container: { backgroundColor: "#f8f9fa", minHeight: "100vh", width: "100%" },
     fullHeight: { height: "100vh" },
     card: { backgroundColor: "#fff", padding: "40px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)" },
     header: { marginBottom: "20px", fontSize: "28px", fontWeight: "bold", color: "#3b82f6" },
-    overlay: {
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
-        zIndex: 9999,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center"
-    },
-    spinnerContainer: {
-        textAlign: "center"
-    }
 };
 
 export default AuthPage;

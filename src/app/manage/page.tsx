@@ -313,7 +313,7 @@ const AdminPage = () => {
                                                             onClick={() => handleEditClick(user)}
                                                         >
                                                             <i className="fa-solid fa-pen-nib me-1"></i>
-                                                            Edit
+                                                            Sửa
                                                         </Button>
                                                         <Button
                                                             variant="danger"
@@ -321,7 +321,7 @@ const AdminPage = () => {
                                                             onClick={() => handleDeleteUser(user._id)}
                                                         >
                                                             <i className="fas fa-trash me-1"></i>
-                                                            Delete
+                                                            Xóa
                                                         </Button>
                                                     </td>
                                                 </tr>

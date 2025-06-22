@@ -41,7 +41,8 @@
     "src/app/api/pinata/route.js",
     "src/app/api/login/changepass/route.js",
     "src/lib/session.js",
-    "src/app/api/login/route.js"
+    "src/app/api/login/route.js",
+    "src/app/components/Loadingpage.js"
   ],
   "exclude": [
     "node_modules"

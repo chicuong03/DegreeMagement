@@ -315,7 +315,7 @@ const ManageDegreesPage = () => {
                                                     onClick={() => handleShowDetails(certificate)}
                                                 >
                                                     <i className="fa-solid fa-eye me-1"></i>
-                                                    Detail
+                                                    Xem
                                                 </Button>
                                             </td>
                                         </tr>
